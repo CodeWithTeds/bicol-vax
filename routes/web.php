@@ -50,6 +50,8 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin.otp'])->group
 Route::prefix('user')->name('user.')->group(function () {
     Route::get('/dashboard', [UserController::class, 'dashboard'])->name('dashboard');
     Route::get('/records', [UserController::class, 'records'])->name('records');
+    Route::get('/profile', [UserController::class, 'profile'])->name('profile');
+    Route::post('/profile', [UserController::class, 'updateProfile'])->name('profile.update');
     Route::get('/booking', [UserController::class, 'booking'])->name('booking');
     Route::post('/booking', [UserController::class, 'storeBooking'])->name('booking.store');
     Route::get('/my-appointments', [UserController::class, 'myAppointments'])->name('my-appointments');

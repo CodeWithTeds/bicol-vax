@@ -212,7 +212,7 @@
                     <li><a href="{{ route('user.dashboard') }}" class="@if(Route::currentRouteName() == 'user.dashboard') active @endif">Dashboard</a></li>
                     <li><a href="{{ route('user.booking') }}" class="@if(Route::currentRouteName() == 'user.booking') active @endif">Booking Appointment</a></li>
                     <li><a href="{{ route('user.my-appointments') }}" class="@if(Route::currentRouteName() == 'user.my-appointments') active @endif">My Schedule</a></li>
-                    <li><a href="#" class="@if(Route::currentRouteName() == 'user.profile') active @endif">Profile</a></li>
+                    <li><a href="{{ route('user.profile') }}" class="@if(Route::currentRouteName() == 'user.profile') active @endif">Profile</a></li>
                 </ul>
             </nav>
 

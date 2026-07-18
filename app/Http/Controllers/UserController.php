@@ -44,6 +44,49 @@ class UserController extends Controller
         return view('user.records', compact('patients', 'appointments'));
     }
 
+    public function profile()
+    {
+        $user = auth()->user();
+        $patient = null;
+
+        if ($user) {
+            $patient = Patient::where('email', $user->email)->latest()->first();
+        }
+
+        return view('user.profile', compact('user', 'patient'));
+    }
+
+    public function updateProfile(Request $request)
+    {
+        $user = auth()->user();
+
+        $validated = $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'contact' => ['nullable', 'string', 'max:50'],
+            'address' => ['nullable', 'string', 'max:255'],
+            'gender' => ['nullable', 'in:Male,Female,Other'],
+            'age' => ['nullable', 'integer', 'min:1', 'max:150'],
+        ]);
+
+        // Update user name
+        $user->name = $validated['name'];
+        $user->save();
+
+        // Update the linked patient record if it exists
+        $patient = Patient::where('email', $user->email)->latest()->first();
+        if ($patient) {
+            $patient->update([
+                'full_name' => $validated['name'],
+                'contact' => $validated['contact'] ?? $patient->contact,
+                'address' => $validated['address'] ?? $patient->address,
+                'gender' => $validated['gender'] ?? $patient->gender,
+                'age' => $validated['age'] ?? $patient->age,
+            ]);
+        }
+
+        return back()->with('success', 'Profile updated successfully.');
+    }
+
     public function booking()
     {
         return view('user.booking');
