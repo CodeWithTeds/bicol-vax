@@ -18,7 +18,30 @@ class UserController extends Controller
 {
     public function dashboard()
     {
-        return view('user.dashboard');
+        $user = auth()->user();
+        $patients = collect();
+        $appointments = collect();
+
+        if ($user) {
+            $patients = Patient::where('email', $user->email)->latest()->get();
+            $appointments = Appointment::where('user_id', $user->id)->latest()->get();
+        }
+
+        return view('user.dashboard', compact('patients', 'appointments'));
+    }
+
+    public function records()
+    {
+        $user = auth()->user();
+        $patients = collect();
+        $appointments = collect();
+
+        if ($user) {
+            $patients = Patient::where('email', $user->email)->latest()->get();
+            $appointments = Appointment::where('user_id', $user->id)->latest()->get();
+        }
+
+        return view('user.records', compact('patients', 'appointments'));
     }
 
     public function booking()

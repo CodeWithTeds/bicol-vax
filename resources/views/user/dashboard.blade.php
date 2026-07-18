@@ -98,7 +98,7 @@
             <div style="font-size: 1.5rem; margin-bottom: 0.5rem;">📅</div>
             Booking Appointment
         </a>
-        <a href="#" class="action-card">
+        <a href="{{ route('user.records') }}" class="action-card">
             <div style="font-size: 1.5rem; margin-bottom: 0.5rem;">📋</div>
             View Records
         </a>
@@ -112,37 +112,24 @@
         <h2>Recent Vaccination Records</h2>
         <p>Your latest vaccination history</p>
 
-        <div class="record-item">
-            <div class="record-content">
-                <h3>Anti-Rabies Vaccine</h3>
-                <p>Dose 1</p>
+        @forelse($patients as $patient)
+            <div class="record-item">
+                <div class="record-content">
+                    <h3>{{ $patient->brand_name }} ({{ $patient->generic_name }})</h3>
+                    <p>{{ $patient->anti_rabies_dose }} &bull; {{ $patient->route }} &bull; {{ $patient->dosage }}</p>
+                </div>
+                <div class="record-date">
+                    <p>{{ ucfirst(str_replace('_', ' ', $patient->status)) }}</p>
+                    <p style="font-size: 1.1rem;">{{ \Carbon\Carbon::parse($patient->anti_rabies_date)->format('m/d/Y') }}</p>
+                </div>
             </div>
-            <div class="record-date">
-                <p>Administered</p>
-                <p style="font-size: 1.1rem;">1/15/2026</p>
+        @empty
+            <div class="record-item">
+                <div class="record-content">
+                    <h3>No records found</h3>
+                    <p>You don't have any vaccination records yet.</p>
+                </div>
             </div>
-        </div>
-
-        <div class="record-item">
-            <div class="record-content">
-                <h3>Anti-Rabies Vaccine</h3>
-                <p>Dose 2</p>
-            </div>
-            <div class="record-date">
-                <p>Administered</p>
-                <p style="font-size: 1.1rem;">1/18/2026</p>
-            </div>
-        </div>
-
-        <div class="record-item">
-            <div class="record-content">
-                <h3>Anti-Rabies Vaccine</h3>
-                <p>Dose 3</p>
-            </div>
-            <div class="record-date">
-                <p>Administered</p>
-                <p style="font-size: 1.1rem;">1/16/2026</p>
-            </div>
-        </div>
+        @endforelse
     </div>
 @endsection
