@@ -70,22 +70,43 @@ class AdminController extends Controller
      */
     public function dashboard()
     {
+        // Patient statistics
         $totalPatients = Patient::count();
         $patientsToday = Patient::whereDate('created_at', today())->count();
+        $pendingPatients = Patient::where('status', 'not_approved')->orWhereNull('status')->count();
+        $approvedPatients = Patient::where('status', 'approved')->count();
         $severeCases = Patient::where('severity', 'severe')->count();
         $categoryICases = Patient::where('cat_category', 'category_i')->count();
         $categoryIICases = Patient::where('cat_category', 'category_ii')->count();
         $categoryIIICases = Patient::where('cat_category', 'category_iii')->count();
+
+        // Appointment statistics
+        $totalAppointments = Appointment::count();
+        $pendingAppointments = Appointment::where('status', 'not_approved')->orWhereNull('status')->count();
+        $approvedAppointments = Appointment::where('status', 'approved')->count();
+        $completedAppointments = Appointment::whereIn('status', ['completed', 'done'])->count();
+        $appointmentsToday = Appointment::whereDate('appointment_date', today())->count();
+
+        // Recent records
         $recentPatients = Patient::latest()->take(5)->get();
+        $recentAppointments = Appointment::latest()->take(5)->get();
 
         return view('admin.dashboard', compact(
             'totalPatients',
             'patientsToday',
+            'pendingPatients',
+            'approvedPatients',
             'severeCases',
             'categoryICases',
             'categoryIICases',
             'categoryIIICases',
-            'recentPatients'
+            'totalAppointments',
+            'pendingAppointments',
+            'approvedAppointments',
+            'completedAppointments',
+            'appointmentsToday',
+            'recentPatients',
+            'recentAppointments'
         ));
     }
 
@@ -104,8 +125,8 @@ class AdminController extends Controller
         })->latest()->get();
         $approvedOnlineRegistrations = $onlineRegistrations->where('status', 'approved')->values();
 
-        // Build combined patients list (walk-ins + online) for 'All' and totals
-        $allPatients = $patients->concat($onlineRegistrations);
+        // Use total count of ALL patients (consistent with dashboard)
+        $allPatients = Patient::latest()->get();
         $totalPatients = $allPatients->count();
 
         // Appointment categories for admin Patients -> All view

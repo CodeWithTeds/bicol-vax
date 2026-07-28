@@ -35,6 +35,35 @@
         .btn-edit { background: #ff9800; color: #fff; }
         .btn-delete { background: #d9534f; color: #fff; }
 
+        /* Status badges */
+        .badge-approved { background: #d4edda; color: #155724; padding: 0.25rem 0.6rem; border-radius: 12px; font-size: 0.8rem; font-weight: 600; }
+        .badge-not_approved { background: #fff3cd; color: #856404; padding: 0.25rem 0.6rem; border-radius: 12px; font-size: 0.8rem; font-weight: 600; }
+        .badge-rejected { background: #f8d7da; color: #721c24; padding: 0.25rem 0.6rem; border-radius: 12px; font-size: 0.8rem; font-weight: 600; }
+
+        .btn-approve { padding: 0.4rem 0.7rem; border-radius: 6px; font-size: 0.85rem; background: #50c878; color: #fff; border: none; cursor: pointer; }
+
+        /* Status filter */
+        .status-filter {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+            align-items: center;
+        }
+
+        .status-filter label {
+            font-weight: 600;
+            color: #243b3b;
+            font-size: 0.9rem;
+        }
+
+        .status-filter select {
+            padding: 0.4rem 0.8rem;
+            border: 1px solid #c7dede;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            background: #fff;
+        }
+
         /* Responsive tweaks */
         @media (max-width: 900px) {
             .detail-card { grid-template-columns: 1fr; }
@@ -393,8 +422,8 @@
         <h1>Patients Management</h1>
         <div style="display:flex; gap:0.75rem; align-items:center;">
             <div style="display:flex; gap:0.5rem;">
-                <button class="tab-btn" id="tabAll" onclick="showPatientsTab('all')">All</button>
-                <button class="tab-btn active" id="tabWalkin" onclick="showPatientsTab('walkin')">Walk-ins</button>
+                <button class="tab-btn active" id="tabAll" onclick="showPatientsTab('all')">All</button>
+                <button class="tab-btn" id="tabWalkin" onclick="showPatientsTab('walkin')">Walk-ins</button>
                 <button class="tab-btn" id="tabOnline" onclick="showPatientsTab('online')">Online Registrations (Approved)</button>
             </div>
             <button class="btn btn-primary" onclick="openAddPatientModal()">Add Patient</button>
@@ -431,6 +460,14 @@
     </div>
 
     <div class="search-container">
+        <div class="status-filter">
+            <label for="statusFilter">Filter by Status:</label>
+            <select id="statusFilter" onchange="filterByStatus()">
+                <option value="all">All Statuses</option>
+                <option value="approved">Approved</option>
+                <option value="not_approved">Pending</option>
+            </select>
+        </div>
         <input type="text" placeholder="Search Patients..." id="searchInput">
     </div>
 
@@ -520,7 +557,7 @@
             </table>
         </div>
         <div class="table-wrap">
-            <table id="allTable" style="display:none; margin-top: 1rem;">
+            <table id="allTable" style="margin-top: 1rem;">
                 <thead>
                     <tr>
                         <th>Type</th>
@@ -535,14 +572,18 @@
                 </thead>
                 <tbody>
                     @forelse ($patients->concat($onlineRegistrations) as $patient)
-                        <tr>
+                        <tr data-status="{{ $patient->status ?? 'not_approved' }}">
                             <td>{{ (($patient->source ?? null) === 'web' || str_starts_with($patient->card_no, 'WEB-')) ? 'Online Registration' : 'Walk-in' }}</td>
                             <td>{{ $patient->case_no }}</td>
                             <td>{{ $patient->full_name }}</td>
                             <td>{{ $patient->email ?? '-' }}</td>
                             <td>{{ $patient->contact }}</td>
                             <td>{{ optional($patient->created_at)->format('Y-m-d') }}</td>
-                            <td>{{ ucfirst(str_replace('_', ' ', $patient->status ?? 'not_approved')) }}</td>
+                            <td>
+                                <span class="badge-{{ $patient->status ?? 'not_approved' }}">
+                                    {{ $patient->status === 'approved' ? 'Approved' : 'Pending' }}
+                                </span>
+                            </td>
                             <td>
                                 <div class="action-buttons">
                                     <button
@@ -608,7 +649,7 @@
                 </tbody>
             </table>
 
-            <table id="walkinTable">
+            <table id="walkinTable" style="display:none;">
                 <thead>
                     <tr>
                         <th>Case No.</th>
@@ -618,12 +659,13 @@
                         <th>Contact</th>
                         <th>Address</th>
                         <th>Dose</th>
+                        <th>Status</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
                 <tbody id="patientsTableBody">
                     @forelse ($patients as $patient)
-                        <tr>
+                        <tr data-status="{{ $patient->status ?? 'not_approved' }}">
                             <td>{{ $patient->case_no }}</td>
                             <td>{{ $patient->full_name }}</td>
                             <td>{{ $patient->age }}</td>
@@ -631,6 +673,11 @@
                             <td>{{ $patient->contact }}</td>
                             <td>{{ $patient->address }}</td>
                             <td>{{ ucwords(str_replace('_', ' ', $patient->anti_rabies_dose)) }}</td>
+                            <td>
+                                <span class="badge-{{ $patient->status ?? 'not_approved' }}">
+                                    {{ $patient->status === 'approved' ? 'Approved' : 'Pending' }}
+                                </span>
+                            </td>
                             <td>
                                 <div class="action-buttons">
                                     <button
@@ -684,7 +731,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="8" style="text-align: center; color: #999; padding: 2rem;">No Patient recorded</td>
+                            <td colspan="9" style="text-align: center; color: #999; padding: 2rem;">No Patient recorded</td>
                         </tr>
                     @endforelse
                 </tbody>
@@ -708,7 +755,11 @@
                             <td>{{ $apt->email ?? '-' }}</td>
                             <td>{{ $apt->contact }}</td>
                             <td>{{ optional($apt->created_at)->format('Y-m-d') }}</td>
-                            <td id="patient-status-{{ $apt->id }}">{{ ucfirst(str_replace('_', ' ', $apt->status ?? 'not_approved')) }}</td>
+                            <td id="patient-status-{{ $apt->id }}">
+                                <span class="badge-{{ $apt->status ?? 'not_approved' }}">
+                                    {{ $apt->status === 'approved' ? 'Approved' : 'Pending' }}
+                                </span>
+                            </td>
                             <td>
                                 <div class="action-buttons">
                                     <button class="btn-view" type="button" onclick="openViewPatientModalFromRow({{ $apt->id }})">View</button>
@@ -794,9 +845,9 @@
         function statCardClick(type, btn) {
             // Ensure we're on the 'All' tab for appointment-related sections
             if (type === 'patients') {
-                showPatientsTab('walkin');
-                // scroll to walkin table
-                document.getElementById('walkinTable').scrollIntoView({ behavior: 'smooth', block: 'start' });
+                showPatientsTab('all');
+                // scroll to all table
+                document.getElementById('allTable').scrollIntoView({ behavior: 'smooth', block: 'start' });
                 return;
             }
 
@@ -1461,7 +1512,11 @@
 
                 // update status cell
                 const cell = document.getElementById('patient-status-' + id);
-                if (cell) cell.textContent = status === 'approved' ? 'Approved' : 'Not approved';
+                if (cell) {
+                    const badgeClass = status === 'approved' ? 'badge-approved' : 'badge-not_approved';
+                    const badgeText = status === 'approved' ? 'Approved' : 'Pending';
+                    cell.innerHTML = '<span class="' + badgeClass + '">' + badgeText + '</span>';
+                }
                 showToast(data.message || 'Status updated', 'success');
             } catch (err) {
                 showToast(err.message || 'Failed to update', 'error');
@@ -1665,9 +1720,34 @@
 
             tableRows.forEach(row => {
                 const text = row.textContent.toLowerCase();
-                row.style.display = text.includes(searchTerm) ? '' : 'none';
+                const statusFilter = document.getElementById('statusFilter').value;
+                const rowStatus = row.dataset.status || '';
+                const matchesSearch = text.includes(searchTerm);
+                const matchesStatus = statusFilter === 'all' || rowStatus === statusFilter;
+                row.style.display = (matchesSearch && matchesStatus) ? '' : 'none';
             });
         });
+
+        function filterByStatus() {
+            const statusFilter = document.getElementById('statusFilter').value;
+            const searchTerm = (document.getElementById('searchInput').value || '').toLowerCase();
+
+            // Filter all visible tables
+            const tableIds = ['walkinTable', 'allTable', 'onlineTable'];
+            tableIds.forEach(id => {
+                const table = document.getElementById(id);
+                if (!table || table.style.display === 'none') return;
+                const tbody = table.tBodies && table.tBodies[0];
+                if (!tbody) return;
+                Array.from(tbody.rows).forEach(row => {
+                    const text = row.textContent.toLowerCase();
+                    const rowStatus = row.dataset.status || '';
+                    const matchesSearch = searchTerm === '' || text.includes(searchTerm);
+                    const matchesStatus = statusFilter === 'all' || rowStatus === statusFilter;
+                    row.style.display = (matchesSearch && matchesStatus) ? '' : 'none';
+                });
+            });
+        }
 
         @if (session('success'))
             document.getElementById('successModal').classList.add('active');
