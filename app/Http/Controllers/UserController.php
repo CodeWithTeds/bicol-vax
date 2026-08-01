@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Appointment;
 use App\Models\Patient;
 use App\Models\User;
+use App\Models\AdminNotification;
 use App\Mail\OtpMail;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -184,6 +185,9 @@ class UserController extends Controller
             ]);
         });
 
+        // Notify admin of new appointment request
+        AdminNotification::newAppointmentRequest($validated['full_name']);
+
         return back()->with('success', 'Booking submitted successfully. It now appears in Admin Appointments for approval.');
     }
 
@@ -300,6 +304,9 @@ class UserController extends Controller
                 'appointment' => $appointment,
             ];
         });
+
+        // Notify admin of new online registration
+        AdminNotification::newPatientRegistration($registration['patient']->full_name);
 
         if ($request->expectsJson()) {
             return response()->json([

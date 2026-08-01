@@ -42,6 +42,11 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin.otp'])->group
     Route::get('/appointments/json', [AdminController::class, 'appointmentsJson'])->name('appointments.json');
     Route::post('/appointments/{appointment}/status', [AdminController::class, 'updateAppointmentStatus'])->name('appointments.status');
     Route::delete('/appointments/{appointment}', [AdminController::class, 'destroyAppointment'])->name('appointments.destroy');
+    Route::get('/notifications', [AdminController::class, 'notifications'])->name('notifications');
+    Route::get('/notifications/json', [AdminController::class, 'notificationsJson'])->name('notifications.json');
+    Route::post('/notifications/{notification}/read', [AdminController::class, 'markNotificationRead'])->name('notifications.read');
+    Route::post('/notifications/read-all', [AdminController::class, 'markAllNotificationsRead'])->name('notifications.readAll');
+    Route::delete('/notifications/{notification}', [AdminController::class, 'destroyNotification'])->name('notifications.destroy');
     Route::get('/reports', [AdminController::class, 'reports'])->name('reports');
     Route::get('/settings', [AdminController::class, 'settings'])->name('settings');
 });

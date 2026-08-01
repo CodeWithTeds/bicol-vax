@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Appointment;
 use App\Models\Patient;
+use App\Models\AdminNotification;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\PatientApprovedMail;
 use Illuminate\Support\Str;
@@ -266,6 +267,9 @@ class AdminController extends Controller
         $patient->status = $validated['status'];
         $patient->save();
 
+        // Create admin notification
+        AdminNotification::statusUpdated($patient->full_name, $validated['status']);
+
         if ($validated['status'] === 'approved' && $patient->email) {
             try {
                 Mail::to($patient->email)->send(new PatientApprovedMail($patient->full_name, null));
@@ -342,6 +346,16 @@ class AdminController extends Controller
             $patient->save();
         }
 
+        // Create admin notification
+        if ($validated['status'] === 'approved') {
+            AdminNotification::appointmentConfirmed(
+                $appointment->full_name,
+                optional($appointment->appointment_date)->format('M d, Y')
+            );
+        } else {
+            AdminNotification::statusUpdated($appointment->full_name, $validated['status']);
+        }
+
         // If approved, notify user by email (best-effort)
         $notificationEmail = $appointment->user?->email ?? $patient?->email;
         if ($validated['status'] === 'approved' && $notificationEmail) {
@@ -402,5 +416,67 @@ class AdminController extends Controller
     public function settings()
     {
         return view('admin.settings');
+    }
+
+    // ──────────────────────────────────────────────
+    // Notifications
+    // ──────────────────────────────────────────────
+
+    /**
+     * Display notifications page.
+     */
+    public function notifications()
+    {
+        $notifications = AdminNotification::latest()->paginate(30);
+        $unreadCount = AdminNotification::unread()->count();
+
+        return view('admin.notifications', compact('notifications', 'unreadCount'));
+    }
+
+    /**
+     * Return notifications as JSON (for polling / bell badge).
+     */
+    public function notificationsJson()
+    {
+        $notifications = AdminNotification::latest()->take(20)->get();
+        $unreadCount = AdminNotification::unread()->count();
+
+        return response()->json([
+            'unread_count' => $unreadCount,
+            'notifications' => $notifications,
+        ]);
+    }
+
+    /**
+     * Mark a single notification as read.
+     */
+    public function markNotificationRead(AdminNotification $notification)
+    {
+        $notification->markAsRead();
+
+        return response()->json(['success' => true]);
+    }
+
+    /**
+     * Mark all notifications as read.
+     */
+    public function markAllNotificationsRead()
+    {
+        AdminNotification::unread()->update([
+            'is_read' => true,
+            'read_at' => now(),
+        ]);
+
+        return response()->json(['success' => true]);
+    }
+
+    /**
+     * Delete (dismiss) a notification.
+     */
+    public function destroyNotification(AdminNotification $notification)
+    {
+        $notification->delete();
+
+        return response()->json(['success' => true]);
     }
 }
