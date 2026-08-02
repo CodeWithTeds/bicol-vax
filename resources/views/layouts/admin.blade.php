@@ -367,7 +367,14 @@
             <div class="user-menu">
                 <div class="user-profile" onclick="toggleDropdown()">
                     <div class="user-avatar">A</div>
-                    <div>Admin</div>
+                    <div>
+                        <div style="font-size:0.9rem;">Admin</div>
+                        @auth
+                            @if(auth()->user()->branch)
+                                <div style="font-size:0.7rem; opacity:0.85;">{{ auth()->user()->branch->name }}</div>
+                            @endif
+                        @endauth
+                    </div>
                 </div>
                 <div class="dropdown-menu" id="dropdownMenu">
                     <a href="#profile">My Profile</a>

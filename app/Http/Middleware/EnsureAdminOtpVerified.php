@@ -27,6 +27,11 @@ class EnsureAdminOtpVerified
             ]);
         }
 
+        // Super admins should use the superadmin panel
+        if ($user->isSuperAdmin()) {
+            return redirect()->route('superadmin.dashboard');
+        }
+
         if (! (bool) $request->session()->get('admin_otp_verified', false)) {
             return redirect()->route('admin.otp.verify');
         }

@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\AdminAuthController;
+use App\Http\Controllers\SuperAdminController;
 
 Route::get('/', function () {
     $adminEmail = User::query()
@@ -63,6 +64,34 @@ Route::prefix('user')->name('user.')->group(function () {
     Route::post('/booking', [UserController::class, 'storeBooking'])->name('booking.store');
     Route::get('/my-appointments', [UserController::class, 'myAppointments'])->name('my-appointments');
     Route::get('/reminders', [UserController::class, 'reminders'])->name('reminders');
+});
+
+// Super Admin routes
+Route::prefix('superadmin')->name('superadmin.')->group(function () {
+    Route::get('login',  [SuperAdminController::class, 'showLogin'])->name('login');
+    Route::post('login', [SuperAdminController::class, 'login'])->name('login.post');
+});
+
+Route::prefix('superadmin')->name('superadmin.')->middleware('superadmin')->group(function () {
+    Route::post('logout', [SuperAdminController::class, 'logout'])->name('logout');
+
+    Route::get('dashboard', [SuperAdminController::class, 'dashboard'])->name('dashboard');
+
+    // Branch management
+    Route::get('branches',                 [SuperAdminController::class, 'branches'])->name('branches');
+    Route::post('branches',                [SuperAdminController::class, 'storeBranch'])->name('branches.store');
+    Route::patch('branches/{branch}',      [SuperAdminController::class, 'updateBranch'])->name('branches.update');
+    Route::delete('branches/{branch}',     [SuperAdminController::class, 'destroyBranch'])->name('branches.destroy');
+    Route::get('branches/{branch}/view',   [SuperAdminController::class, 'viewBranch'])->name('branches.view');
+
+    // Branch admin management
+    Route::get('admins',               [SuperAdminController::class, 'admins'])->name('admins');
+    Route::post('admins',              [SuperAdminController::class, 'storeAdmin'])->name('admins.store');
+    Route::patch('admins/{user}',      [SuperAdminController::class, 'updateAdmin'])->name('admins.update');
+    Route::delete('admins/{user}',     [SuperAdminController::class, 'destroyAdmin'])->name('admins.destroy');
+
+    // Reports
+    Route::get('reports', [SuperAdminController::class, 'reports'])->name('reports');
 });
 
 // Logout route

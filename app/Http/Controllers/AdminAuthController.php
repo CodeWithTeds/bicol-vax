@@ -81,6 +81,7 @@ class AdminAuthController extends Controller
         if (! $request->expectsJson()) {
             Auth::login($user);
             $request->session()->put('admin_otp_verified', true);
+            $request->session()->put('admin_branch_id', $user->branch_id);
             $request->session()->forget('admin_otp_user');
 
             return redirect()->route('admin.dashboard');
@@ -158,6 +159,7 @@ class AdminAuthController extends Controller
         $user = User::find($userId);
         Auth::login($user);
         $request->session()->put('admin_otp_verified', true);
+        $request->session()->put('admin_branch_id', $user->branch_id);
 
         // cleanup
         DB::table('admin_otps')->where('user_id', $userId)->delete();

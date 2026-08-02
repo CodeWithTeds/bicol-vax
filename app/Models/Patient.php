@@ -10,6 +10,7 @@ class Patient extends Model
     use HasFactory;
 
     protected $fillable = [
+        'branch_id',
         'full_name',
         'card_no',
         'case_no',
@@ -46,5 +47,10 @@ class Patient extends Model
             'anti_rabies_date' => 'date',
             'tetanus_date' => 'date',
         ];
+    }
+
+    public function branch()
+    {
+        return $this->belongsTo(Branch::class);
     }
 }

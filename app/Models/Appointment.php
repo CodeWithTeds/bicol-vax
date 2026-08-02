@@ -11,6 +11,7 @@ class Appointment extends Model
     use HasFactory;
 
     protected $fillable = [
+        'branch_id',
         'user_id',
         'full_name',
         'birthday',
@@ -37,5 +38,10 @@ class Appointment extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function branch(): BelongsTo
+    {
+        return $this->belongsTo(Branch::class);
     }
 }

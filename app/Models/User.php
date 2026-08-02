@@ -25,6 +25,8 @@ class User extends Authenticatable
         'email',
         'password',
         'is_admin',
+        'is_super_admin',
+        'branch_id',
     ];
 
     /**
@@ -54,5 +56,15 @@ class User extends Authenticatable
     public function patients()
     {
         return $this->hasMany(Patient::class, 'email', 'email');
+    }
+
+    public function branch()
+    {
+        return $this->belongsTo(Branch::class);
+    }
+
+    public function isSuperAdmin(): bool
+    {
+        return (bool) $this->is_super_admin;
     }
 }
