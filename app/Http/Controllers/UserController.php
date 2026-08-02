@@ -265,26 +265,29 @@ class UserController extends Controller
     {
         // Require only email + password; make personal fields optional to avoid validation errors
         $validated = $request->validate([
-            'email' => ['required', 'email', 'max:255'],
-            'password' => ['required', 'string', 'min:6', 'confirmed'],
-            // Require fullname and contact so admin gets basic info immediately
-            'fullname' => ['required', 'string', 'max:255'],
-            'birthday' => ['nullable', 'date'],
-            'age' => ['nullable', 'integer', 'min:1', 'max:120'],
-            'gender' => ['nullable', 'in:male,female,other'],
-            'address' => ['nullable', 'string', 'max:255'],
-            'contact' => ['required', 'string', 'max:50'],
+            'email'            => ['required', 'email', 'max:255'],
+            'password'         => ['required', 'string', 'min:6', 'confirmed'],
+            'fullname'         => ['required', 'string', 'max:255'],
+            'birthday'         => ['nullable', 'date'],
+            'age'              => ['nullable', 'integer', 'min:1', 'max:120'],
+            'gender'           => ['nullable', 'in:male,female,other'],
+            'address'          => ['nullable', 'string', 'max:255'],
+            'contact'          => ['required', 'string', 'max:50'],
             'appointment_date' => ['nullable', 'date'],
-            'parent_guardian' => ['nullable', 'string', 'max:255'],
+            'parent_guardian'  => ['nullable', 'string', 'max:255'],
+            'branch_id'        => ['required', 'exists:branches,id'],
         ]);
 
         $registration = DB::transaction(function () use ($validated) {
-            $user = User::where('email', $validated['email'])->first();
+            $branchId = (int) $validated['branch_id'];
 
             $providedPassword = $validated['password'];
 
+            // Check if a user account already exists for this email
+            $user = User::where('email', $validated['email'])->first();
+
             if ($user) {
-                // update password
+                // update password for returning user
                 $user->password = Hash::make($providedPassword);
                 $user->save();
             } else {
@@ -317,6 +320,7 @@ class UserController extends Controller
             $caseNo = 'WEBCASE-' . now()->format('Ymd') . '-' . strtoupper(Str::random(5));
 
             $patient = Patient::create([
+                'branch_id'  => $branchId,
                 'full_name' => $fullName,
                 'card_no' => $cardNo,
                 'case_no' => $caseNo,
@@ -346,7 +350,8 @@ class UserController extends Controller
             ]);
 
             $appointment = Appointment::create([
-                'user_id' => $user->id,
+                'branch_id'       => $branchId,
+                'user_id'         => $user->id,
                 'full_name' => $fullName,
                 'birthday' => $birthday,
                 'age' => $age,

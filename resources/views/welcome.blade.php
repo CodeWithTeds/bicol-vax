@@ -986,15 +986,53 @@
 
                 <div class="modal-header">
                     <h2 id="registerModalTitle">Patient Registration</h2>
-                    <p id="registerModalDesc">Create your BicolVax account and enter your personal details</p>
+                    <p id="registerModalDesc" id="registerModalDesc">
+                        <span id="registerStepLabel">Step 1 of 2 — Choose your branch</span>
+                    </p>
+                </div>
+
+                <!-- Step indicators -->
+                <div style="display:flex; gap:0.5rem; padding:1rem 2rem 0; justify-content:center;">
+                    <div id="stepDot1" style="flex:1; height:4px; border-radius:4px; background:var(--primary); transition:background 0.3s;"></div>
+                    <div id="stepDot2" style="flex:1; height:4px; border-radius:4px; background:#e5e7eb; transition:background 0.3s;"></div>
                 </div>
 
                 <form id="registerForm" method="POST" action="{{ route('public.register') }}">
                     @csrf
                     <div class="form-section" id="register-form">
 
-                        <div class="register-step" id="registerStepAccount">
-                            <div class="form-group">
+                        <!-- ── Step 1: Branch Selection ── -->
+                        <div id="registerStepPersonal">
+                            <div class="form-group" style="margin-top:1.5rem;">
+                                <label for="branch_id" style="font-weight:600; font-size:1rem;">Select Your Nearest Branch *</label>
+                                <p style="font-size:0.85rem; color:#6b7280; margin-bottom:0.75rem;">Choose the BicolVax branch where you'd like to receive your vaccination.</p>
+                                <select id="branch_id" name="branch_id" required style="font-size:1rem; padding:0.75rem 1rem;">
+                                    <option value="">— Choose a branch —</option>
+                                    @foreach(\App\Models\Branch::where('is_active', true)->orderBy('name')->get() as $branch)
+                                        <option value="{{ $branch->id }}" {{ old('branch_id') == $branch->id ? 'selected' : '' }}>
+                                            {{ $branch->name }} – {{ $branch->location }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </div>
+
+                            <div class="modal-login-link" style="margin-top:1rem;">
+                                Already have an account? <a href="#" onclick="closeRegisterModal(); openLoginModal(); return false;">Login here</a>
+                            </div>
+
+                            <div class="modal-buttons" style="padding:1.5rem 0 0;">
+                                <button type="button" class="modal-button close" onclick="closeRegisterModal()">
+                                    <span>Cancel</span>
+                                </button>
+                                <button type="button" class="modal-button submit" id="registerContinueBtn" onclick="registerGoToStep2()">
+                                    <span>Continue →</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- ── Step 2: Personal & Account Details ── -->
+                        <div id="registerStepAccount" style="display:none;">
+                            <div class="form-group" style="margin-top:1rem;">
                                 <label for="fullname">Full Name *</label>
                                 <input type="text" id="fullname" name="fullname" placeholder="Juan Dela Cruz" required value="{{ old('fullname') }}">
                             </div>
@@ -1029,15 +1067,16 @@
                                 Already have an account? <a href="#" onclick="closeRegisterModal(); openLoginModal(); return false;">Login here</a>
                             </div>
 
-                            <div class="modal-buttons">
-                                <button type="button" class="modal-button close" onclick="closeRegisterModal()">
-                                    <span>Cancel</span>
+                            <div class="modal-buttons" style="padding:1rem 0 0;">
+                                <button type="button" class="modal-button close" onclick="setRegisterStep('personal')">
+                                    <span>← Back</span>
                                 </button>
                                 <button type="submit" class="modal-button submit">
                                     <span>Complete Registration</span>
                                 </button>
                             </div>
                         </div>
+
                     </div>
                 </form>
             </div>
@@ -1520,20 +1559,42 @@
             function setRegisterStep(step) {
                 const personal = document.getElementById('registerStepPersonal');
                 const account = document.getElementById('registerStepAccount');
+                const stepLabel = document.getElementById('registerStepLabel');
+                const dot1 = document.getElementById('stepDot1');
+                const dot2 = document.getElementById('stepDot2');
                 if (!personal || !account) return;
 
                 if (step === 'account') {
                     personal.style.display = 'none';
                     account.style.display = 'block';
-                    const email = document.getElementById('email');
-                    if (email) email.focus();
+                    if (stepLabel) stepLabel.textContent = 'Step 2 of 2 — Your details';
+                    if (dot1) dot1.style.background = 'var(--primary)';
+                    if (dot2) dot2.style.background = 'var(--primary)';
+                    const fullname = document.getElementById('fullname');
+                    if (fullname) fullname.focus();
                     return;
                 }
 
                 personal.style.display = 'block';
                 account.style.display = 'none';
-                const fullname = document.getElementById('fullname');
-                if (fullname) fullname.focus();
+                if (stepLabel) stepLabel.textContent = 'Step 1 of 2 — Choose your branch';
+                if (dot1) dot1.style.background = 'var(--primary)';
+                if (dot2) dot2.style.background = '#e5e7eb';
+                const branchSelect = document.getElementById('branch_id');
+                if (branchSelect) branchSelect.focus();
+            }
+
+            function registerGoToStep2() {
+                const branchSelect = document.getElementById('branch_id');
+                if (!branchSelect || !branchSelect.value) {
+                    branchSelect.focus();
+                    branchSelect.style.border = '2px solid #e3342f';
+                    branchSelect.addEventListener('change', function() {
+                        branchSelect.style.border = '';
+                    }, { once: true });
+                    return;
+                }
+                setRegisterStep('account');
             }
 
             // Basic client-side validation: ensure passwords match before submitting
@@ -1625,6 +1686,9 @@
                 modal.classList.add('active');
                 modal.setAttribute('aria-hidden', 'false');
                 document.body.style.overflow = 'hidden';
+
+                // always start at step 1 (branch selection)
+                setRegisterStep('personal');
 
                 const firstInput = modal.querySelector('input, select, textarea, button');
                 if (firstInput) firstInput.focus();
@@ -1753,7 +1817,14 @@
                 const errors = @json($errors->any() ? $errors->all() : []);
                 if (errors && errors.length) {
                     // open registration modal so user sees the form with old values
-                    try { openRegisterModal(); } catch (e) {}
+                    try {
+                        openRegisterModal();
+                        // If branch was already selected, jump to step 2 so user sees their field errors
+                        const oldBranchId = @json(old('branch_id'));
+                        if (oldBranchId) {
+                            setRegisterStep('account');
+                        }
+                    } catch (e) {}
 
                     const banner = document.createElement('div');
                     banner.style.position = 'fixed';
