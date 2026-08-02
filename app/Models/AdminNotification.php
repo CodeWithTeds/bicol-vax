@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class AdminNotification extends Model
 {
     protected $fillable = [
+        'branch_id',
         'type',
         'title',
         'message',
@@ -45,67 +46,72 @@ class AdminNotification extends Model
     /**
      * Create a notification for an appointment confirmation.
      */
-    public static function appointmentConfirmed(string $patientName, ?string $date = null): self
+    public static function appointmentConfirmed(string $patientName, ?string $date = null, ?int $branchId = null): self
     {
         return static::create([
-            'type' => 'appointment_confirmed',
-            'title' => 'Appointment Confirmed',
-            'message' => "{$patientName}'s appointment has been confirmed" . ($date ? " for {$date}." : '.'),
-            'icon' => '✅',
+            'branch_id' => $branchId,
+            'type'      => 'appointment_confirmed',
+            'title'     => 'Appointment Confirmed',
+            'message'   => "{$patientName}'s appointment has been confirmed" . ($date ? " for {$date}." : '.'),
+            'icon'      => '✅',
         ]);
     }
 
     /**
      * Create a notification for a status update.
      */
-    public static function statusUpdated(string $patientName, string $newStatus): self
+    public static function statusUpdated(string $patientName, string $newStatus, ?int $branchId = null): self
     {
         $statusLabel = $newStatus === 'approved' ? 'Approved' : 'Not Approved';
 
         return static::create([
-            'type' => 'status_update',
-            'title' => 'Status Updated',
-            'message' => "{$patientName} has been marked as {$statusLabel}.",
-            'icon' => '🔄',
+            'branch_id' => $branchId,
+            'type'      => 'status_update',
+            'title'     => 'Status Updated',
+            'message'   => "{$patientName} has been marked as {$statusLabel}.",
+            'icon'      => '🔄',
         ]);
     }
 
     /**
      * Create a system announcement notification.
      */
-    public static function systemAnnouncement(string $title, string $message): self
+    public static function systemAnnouncement(string $title, string $message, ?int $branchId = null): self
     {
         return static::create([
-            'type' => 'system_announcement',
-            'title' => $title,
-            'message' => $message,
-            'icon' => '📢',
+            'branch_id' => $branchId,
+            'type'      => 'system_announcement',
+            'title'     => $title,
+            'message'   => $message,
+            'icon'      => '📢',
         ]);
     }
 
     /**
      * Create a notification for a new appointment request.
      */
-    public static function newAppointmentRequest(string $patientName): self
+    public static function newAppointmentRequest(string $patientName, ?int $branchId = null): self
     {
         return static::create([
-            'type' => 'new_appointment',
-            'title' => 'New Appointment Request',
-            'message' => "{$patientName} has submitted a new appointment request.",
-            'icon' => '📅',
+            'branch_id' => $branchId,
+            'type'      => 'new_appointment',
+            'title'     => 'New Appointment Request',
+            'message'   => "{$patientName} has submitted a new appointment request.",
+            'icon'      => '📅',
         ]);
     }
 
     /**
      * Create a notification for a new patient registration.
      */
-    public static function newPatientRegistration(string $patientName): self
+    public static function newPatientRegistration(string $patientName, ?int $branchId = null): self
     {
         return static::create([
-            'type' => 'new_registration',
-            'title' => 'New Patient Registration',
-            'message' => "{$patientName} has registered online and is awaiting approval.",
-            'icon' => '👤',
+            'branch_id' => $branchId,
+            'type'      => 'new_registration',
+            'title'     => 'New Patient Registration',
+            'message'   => "{$patientName} has registered online and is awaiting approval.",
+            'icon'      => '👤',
         ]);
     }
 }

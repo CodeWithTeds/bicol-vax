@@ -269,7 +269,7 @@ class AdminController extends Controller
 
         $patient->update(['status' => $validated['status']]);
 
-        AdminNotification::statusUpdated($patient->full_name, $validated['status']);
+        AdminNotification::statusUpdated($patient->full_name, $validated['status'], $this->branchId());
 
         if ($validated['status'] === 'approved' && $patient->email) {
             try {
@@ -337,10 +337,11 @@ class AdminController extends Controller
         if ($validated['status'] === 'approved') {
             AdminNotification::appointmentConfirmed(
                 $appointment->full_name,
-                optional($appointment->appointment_date)->format('M d, Y')
+                optional($appointment->appointment_date)->format('M d, Y'),
+                $this->branchId()
             );
         } else {
-            AdminNotification::statusUpdated($appointment->full_name, $validated['status']);
+            AdminNotification::statusUpdated($appointment->full_name, $validated['status'], $this->branchId());
         }
 
         $notificationEmail = $appointment->user?->email ?? $patient?->email;
@@ -460,16 +461,16 @@ class AdminController extends Controller
 
     public function notifications()
     {
-        $notifications = AdminNotification::latest()->paginate(30);
-        $unreadCount   = AdminNotification::unread()->count();
+        $notifications = AdminNotification::where('branch_id', $this->branchId())->latest()->paginate(30);
+        $unreadCount   = AdminNotification::where('branch_id', $this->branchId())->unread()->count();
 
         return view('admin.notifications', compact('notifications', 'unreadCount'));
     }
 
     public function notificationsJson()
     {
-        $notifications = AdminNotification::latest()->take(20)->get();
-        $unreadCount   = AdminNotification::unread()->count();
+        $notifications = AdminNotification::where('branch_id', $this->branchId())->latest()->take(20)->get();
+        $unreadCount   = AdminNotification::where('branch_id', $this->branchId())->unread()->count();
 
         return response()->json(['unread_count' => $unreadCount, 'notifications' => $notifications]);
     }
@@ -482,7 +483,7 @@ class AdminController extends Controller
 
     public function markAllNotificationsRead()
     {
-        AdminNotification::unread()->update(['is_read' => true, 'read_at' => now()]);
+        AdminNotification::where('branch_id', $this->branchId())->unread()->update(['is_read' => true, 'read_at' => now()]);
         return response()->json(['success' => true]);
     }
 

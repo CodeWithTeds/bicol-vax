@@ -354,7 +354,7 @@
                     <li><a href="{{ route('admin.reminders') }}" class="@if(Route::currentRouteName() == 'admin.reminders') active @endif">Reminders</a></li>
                     <li><a href="{{ route('admin.notifications') }}" class="@if(Route::currentRouteName() == 'admin.notifications') active @endif" style="position:relative;">
                         🔔 Notifications
-                        @php $navUnreadCount = \App\Models\AdminNotification::unread()->count(); @endphp
+                        @php $navUnreadCount = \App\Models\AdminNotification::where('branch_id', auth()->user()?->branch_id)->unread()->count(); @endphp
                         @if($navUnreadCount > 0)
                             <span style="position:absolute;top:-4px;right:-8px;background:#ef4444;color:white;font-size:0.65rem;font-weight:700;padding:2px 5px;border-radius:10px;min-width:16px;text-align:center;">{{ $navUnreadCount }}</span>
                         @endif
