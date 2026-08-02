@@ -182,6 +182,88 @@
             font-weight: 800;
             color: #1d2a3a;
         }
+
+        .patient-summary {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            min-width: 180px;
+        }
+
+        .patient-avatar {
+            width: 52px;
+            height: 52px;
+            flex: 0 0 52px;
+            border-radius: 50%;
+            object-fit: cover;
+            background: #d9eeee;
+            border: 3px solid #fff;
+            box-shadow: 0 2px 8px rgba(32, 89, 90, 0.18);
+        }
+
+        .patient-avatar-fallback {
+            display: grid;
+            place-items: center;
+            color: #226d6e;
+            font-size: 0.95rem;
+            font-weight: 800;
+        }
+
+        .patient-name {
+            color: #1e3131;
+            font-weight: 750;
+        }
+
+        .view-profile-btn {
+            margin-top: 0.2rem;
+            padding: 0;
+            border: 0;
+            background: transparent;
+            color: #197779;
+            font-size: 0.8rem;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .view-profile-btn:hover {
+            color: #115758;
+            text-decoration: underline;
+        }
+
+        .profile-card {
+            padding: 1.75rem;
+            text-align: center;
+        }
+
+        .profile-card .patient-avatar {
+            width: 112px;
+            height: 112px;
+            margin-bottom: 0.9rem;
+            border-width: 4px;
+        }
+
+        .profile-details {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 0.75rem;
+            margin-top: 1.25rem;
+            text-align: left;
+        }
+
+        .profile-details div {
+            padding: 0.75rem;
+            border-radius: 8px;
+            background: #f4fbfb;
+        }
+
+        .profile-details span {
+            display: block;
+            margin-bottom: 0.2rem;
+            color: #668181;
+            font-size: 0.72rem;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
     </style>
 
     <div class="appointments-header">
@@ -231,6 +313,17 @@
                 <tr><td colspan="7" style="text-align: center; color: #999; padding: 2rem;">Loading appointments...</td></tr>
             </tbody>
         </table>
+    </div>
+
+    <div class="modal-overlay" id="viewProfileModal" aria-hidden="true">
+        <div class="modal-content" role="dialog" aria-modal="true" aria-labelledby="viewProfileTitle" tabindex="-1" style="max-width: 500px;">
+            <button class="close-icon" onclick="closeProfileModal()" aria-label="Close profile">×</button>
+            <div class="modal-header">
+                <h2 id="viewProfileTitle">Patient Profile</h2>
+                <p>Booking information and profile photo</p>
+            </div>
+            <div class="profile-card" id="profileCardContent"></div>
+        </div>
     </div>
 
     <!-- Confirmation Modal -->
@@ -713,6 +806,61 @@
             renderAppointments();
         }
 
+        function escapeHtml(value) {
+            const element = document.createElement('div');
+            element.textContent = value || '';
+            return element.innerHTML;
+        }
+
+        function initials(name) {
+            return (name || 'Patient')
+                .trim()
+                .split(/\s+/)
+                .slice(0, 2)
+                .map(part => part.charAt(0).toUpperCase())
+                .join('');
+        }
+
+        function profileAvatar(apt, size) {
+            if (apt.profile_photo_url) {
+                return `<img class="patient-avatar" src="${apt.profile_photo_url}" alt="${escapeHtml(apt.patient)} profile photo" style="width: ${size}px; height: ${size}px; flex-basis: ${size}px;" onerror="this.replaceWith(Object.assign(document.createElement('span'), {className: 'patient-avatar patient-avatar-fallback', textContent: '${initials(apt.patient)}'}))">`;
+            }
+
+            return `<span class="patient-avatar patient-avatar-fallback" style="width: ${size}px; height: ${size}px; flex-basis: ${size}px;">${initials(apt.patient)}</span>`;
+        }
+
+        function viewAppointmentProfile(id) {
+            const apt = appointments.find(appointment => appointment.id === id);
+            if (!apt) return;
+
+            document.getElementById('profileCardContent').innerHTML = `
+                ${profileAvatar(apt, 112)}
+                <h3 style="margin: 0; color: #1e3131;">${escapeHtml(apt.patient)}</h3>
+                <p style="margin: 0.3rem 0 0; color: #668181;">${escapeHtml(apt.email || 'No email provided')}</p>
+                <div class="profile-details">
+                    <div><span>Contact</span>${escapeHtml(apt.contact || 'Not provided')}</div>
+                    <div><span>Birthday</span>${escapeHtml(apt.birthday || 'Not provided')}</div>
+                    <div><span>Age</span>${escapeHtml(apt.age || 'Not provided')}</div>
+                    <div><span>Appointment</span>${escapeHtml(apt.appointment_date || 'Not scheduled')}</div>
+                </div>`;
+
+            const modal = document.getElementById('viewProfileModal');
+            modal.classList.add('active');
+            modal.setAttribute('aria-hidden', 'false');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeProfileModal() {
+            const modal = document.getElementById('viewProfileModal');
+            modal.classList.remove('active');
+            modal.setAttribute('aria-hidden', 'true');
+            document.body.style.overflow = 'auto';
+        }
+
+        window.profileAvatar = profileAvatar;
+        window.viewAppointmentProfile = viewAppointmentProfile;
+        window.closeProfileModal = closeProfileModal;
+
         function renderAppointments() {
             const tbody = document.getElementById('appointmentsTableBody');
             const filteredAppointments = getFilteredAppointments();
@@ -725,7 +873,7 @@
                     : currentAppointmentFilter === 'approved'
                         ? 'No approved appointments found'
                         : 'No not approved appointments found';
-                tbody.innerHTML = `<tr><td colspan="10" style="text-align: center; color: #999; padding: 2rem;">${emptyMessage}</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; color: #999; padding: 2rem;">${emptyMessage}</td></tr>`;
                 return;
             }
 
@@ -737,7 +885,13 @@
                 return `
                 <tr>
                     <td>
-                        <div style="font-weight: 700; color: #222;">${apt.patient}</div>
+                        <div class="patient-summary">
+                            ${window.profileAvatar(apt, 52)}
+                            <div>
+                                <div class="patient-name">${escapeHtml(apt.patient)}</div>
+                                <button type="button" class="view-profile-btn" onclick="window.viewAppointmentProfile(${apt.id})">View profile</button>
+                            </div>
+                        </div>
                     </td>
                     <td>${apt.email || '-'}</td>
                     <td>${apt.birthday || '-'}</td>
@@ -1104,6 +1258,7 @@
         // Close modal with Escape key
         document.addEventListener('keydown', function(event) {
             if (event.key === 'Escape') {
+                closeProfileModal();
                 closeEditAptModal();
                 closeConfirmAptModal();
                 closeDeleteAptModal();
@@ -1126,6 +1281,12 @@
         document.getElementById('deleteAptModal').addEventListener('click', function(event) {
             if (event.target === this) {
                 closeDeleteAptModal();
+            }
+        });
+
+        document.getElementById('viewProfileModal').addEventListener('click', function(event) {
+            if (event.target === this) {
+                closeProfileModal();
             }
         });
 

@@ -70,6 +70,31 @@
             gap: 2rem 3rem;
         }
 
+        .profile-photo-row {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .profile-photo {
+            width: 86px;
+            height: 86px;
+            border-radius: 50%;
+            object-fit: cover;
+            background: #d9eeee;
+            border: 3px solid #fff;
+            box-shadow: 0 2px 8px rgba(32, 89, 90, 0.18);
+        }
+
+        .profile-photo-empty {
+            display: grid;
+            place-items: center;
+            color: #226d6e;
+            font-size: 1.3rem;
+            font-weight: 800;
+        }
+
         .info-field {
             border-bottom: 1.5px solid #c7dede;
             padding-bottom: 0.5rem;
@@ -258,6 +283,14 @@
 
             <div class="info-grid">
                 <div class="info-field">
+                    <label>Profile Photo</label>
+                    @if(!empty($patient?->profile_photo_path))
+                        <img class="profile-photo" src="{{ '/storage/' . ltrim($patient->profile_photo_path, '/') }}" alt="Profile photo">
+                    @else
+                        <span>No photo uploaded</span>
+                    @endif
+                </div>
+                <div class="info-field">
                     <label>Fullname</label>
                     <span>{{ $patient->full_name ?? $user->name ?? 'N/A' }}</span>
                 </div>
@@ -313,8 +346,21 @@
     <div class="edit-overlay" id="editModal">
         <div class="edit-modal">
             <h2>Edit Profile</h2>
-            <form action="{{ route('user.profile.update') }}" method="POST">
+            <form action="{{ route('user.profile.update') }}" method="POST" enctype="multipart/form-data">
                 @csrf
+                <div class="profile-photo-row">
+                    @if(!empty($patient?->profile_photo_path))
+                        <img class="profile-photo" src="{{ '/storage/' . ltrim($patient->profile_photo_path, '/') }}" alt="Current profile photo">
+                    @else
+                        <div class="profile-photo profile-photo-empty">
+                            {{ strtoupper(substr($patient->full_name ?? $user->name ?? 'P', 0, 1)) }}
+                        </div>
+                    @endif
+                    <div class="form-group" style="margin-bottom: 0; flex: 1;">
+                        <label for="profile_photo">Profile Photo</label>
+                        <input type="file" id="profile_photo" name="profile_photo" accept="image/jpeg,image/png,image/webp">
+                    </div>
+                </div>
                 <div class="form-row">
                     <div class="form-group">
                         <label for="name">Full Name</label>
@@ -329,9 +375,9 @@
                     <div class="form-group">
                         <label for="gender">Gender</label>
                         <select id="gender" name="gender">
-                            <option value="Male" {{ ($patient->gender ?? '') === 'Male' ? 'selected' : '' }}>Male</option>
-                            <option value="Female" {{ ($patient->gender ?? '') === 'Female' ? 'selected' : '' }}>Female</option>
-                            <option value="Other" {{ ($patient->gender ?? '') === 'Other' ? 'selected' : '' }}>Other</option>
+                            <option value="male" {{ strtolower($patient->gender ?? '') === 'male' ? 'selected' : '' }}>Male</option>
+                            <option value="female" {{ strtolower($patient->gender ?? '') === 'female' ? 'selected' : '' }}>Female</option>
+                            <option value="other" {{ strtolower($patient->gender ?? '') === 'other' ? 'selected' : '' }}>Other</option>
                         </select>
                     </div>
                     <div class="form-group">

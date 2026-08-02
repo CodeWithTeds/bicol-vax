@@ -16,6 +16,7 @@ class Patient extends Model
         'contact',
         'age',
         'email',
+        'profile_photo_path',
         'gender',
         'address',
         'weight',

@@ -65,8 +65,9 @@ class UserController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'contact' => ['nullable', 'string', 'max:50'],
             'address' => ['nullable', 'string', 'max:255'],
-            'gender' => ['nullable', 'in:Male,Female,Other'],
+            'gender' => ['nullable', 'in:male,female,other'],
             'age' => ['nullable', 'integer', 'min:1', 'max:150'],
+            'profile_photo' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
         ]);
 
         // Update user name
@@ -76,13 +77,32 @@ class UserController extends Controller
         // Update the linked patient record if it exists
         $patient = Patient::where('email', $user->email)->latest()->first();
         if ($patient) {
-            $patient->update([
+            $profileUpdates = [
                 'full_name' => $validated['name'],
                 'contact' => $validated['contact'] ?? $patient->contact,
                 'address' => $validated['address'] ?? $patient->address,
                 'gender' => $validated['gender'] ?? $patient->gender,
                 'age' => $validated['age'] ?? $patient->age,
-            ]);
+            ];
+
+            if ($request->hasFile('profile_photo')) {
+                $profileUpdates['profile_photo_path'] = $request->file('profile_photo')->store('profile-photos', 'public');
+            }
+
+            $patient->update($profileUpdates);
+
+            Appointment::where('user_id', $user->id)
+                ->where(function ($query) {
+                    $query->where('status', 'not_approved')
+                        ->orWhereNull('status');
+                })
+                ->update([
+                    'full_name' => $profileUpdates['full_name'],
+                    'contact' => $profileUpdates['contact'],
+                    'address' => $profileUpdates['address'],
+                    'gender' => $profileUpdates['gender'],
+                    'age' => $profileUpdates['age'],
+                ]);
         }
 
         return back()->with('success', 'Profile updated successfully.');
@@ -90,7 +110,12 @@ class UserController extends Controller
 
     public function booking()
     {
-        return view('user.booking');
+        $user = auth()->user();
+        $patient = $user
+            ? Patient::where('email', $user->email)->latest()->first()
+            : null;
+
+        return view('user.booking', compact('user', 'patient'));
     }
 
     public function storeBooking(Request $request)
@@ -104,6 +129,7 @@ class UserController extends Controller
             'contact' => ['nullable', 'string', 'max:50'],
             'age' => ['nullable', 'integer', 'min:0', 'max:150'],
             'email' => ['nullable', 'email', 'max:255'],
+            'profile_photo' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
             'gender' => ['nullable', 'in:male,female,other'],
             'address' => ['nullable', 'string', 'max:255'],
             'appointment_date' => ['required', 'date'],
@@ -131,7 +157,15 @@ class UserController extends Controller
         $validated['treatment_required'] = $request->input('treatment', []);
         unset($validated['treatment']);
 
+        if ($request->hasFile('profile_photo')) {
+            $validated['profile_photo_path'] = $request->file('profile_photo')->store('profile-photos', 'public');
+        }
+        unset($validated['profile_photo']);
+
         $authUser = auth()->user();
+        $profilePatient = $authUser
+            ? Patient::where('email', $authUser->email)->latest()->first()
+            : null;
 
         // Ensure DB-required fields have defaults when omitted from the form
         if (! array_key_exists('weight', $validated) || $validated['weight'] === null) {
@@ -139,13 +173,14 @@ class UserController extends Controller
         }
 
         // Auto-fill removed personal fields so booking submit still works.
-        $validated['full_name'] = $validated['full_name'] ?? ($authUser->name ?? 'Online User');
-        $validated['email'] = $validated['email'] ?? ($authUser->email ?? null);
-        $validated['contact'] = $validated['contact'] ?? 'N/A';
-        $validated['age'] = (int) ($validated['age'] ?? 18);
+        $validated['full_name'] = $validated['full_name'] ?? ($profilePatient?->full_name ?? $authUser->name ?? 'Online User');
+        $validated['email'] = $validated['email'] ?? ($authUser->email ?? $profilePatient?->email);
+        $validated['contact'] = $validated['contact'] ?? ($profilePatient?->contact ?? 'N/A');
+        $validated['age'] = (int) ($validated['age'] ?? $profilePatient?->age ?? 18);
         $validated['birthday'] = $validated['birthday'] ?? now()->subYears(max($validated['age'], 1))->toDateString();
-        $validated['gender'] = $validated['gender'] ?? 'other';
-        $validated['address'] = $validated['address'] ?? 'N/A';
+        $validated['gender'] = $validated['gender'] ?? ($profilePatient?->gender ?? 'other');
+        $validated['address'] = $validated['address'] ?? ($profilePatient?->address ?? 'N/A');
+        $validated['profile_photo_path'] = $validated['profile_photo_path'] ?? $profilePatient?->profile_photo_path;
         $validated['anti_rabies_date'] = $validated['anti_rabies_date'] ?? $validated['appointment_date'];
         $validated['tetanus_date'] = $validated['tetanus_date'] ?? $validated['appointment_date'];
 

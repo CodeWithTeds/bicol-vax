@@ -54,6 +54,32 @@
             font: inherit;
         }
 
+        .photo-upload {
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+        }
+
+        .photo-preview {
+            width: 68px;
+            height: 68px;
+            display: grid;
+            place-items: center;
+            border: 1px dashed #8dbcbc;
+            border-radius: 50%;
+            background: #fff;
+            color: #527272;
+            font-size: 0.75rem;
+            overflow: hidden;
+            flex: 0 0 68px;
+        }
+
+        .photo-preview img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
         .checkbox-grid {
             display: grid;
             grid-template-columns: repeat(3, minmax(120px, 1fr));
@@ -122,11 +148,25 @@
             </div>
         @endif
 
-        <form class="booking-form" method="POST" action="{{ route('user.booking.store') }}">
+        <form class="booking-form" method="POST" action="{{ route('user.booking.store') }}" enctype="multipart/form-data">
             @csrf
 
             <div class="section-title">Patient Information</div>
             <div class="grid-2">
+                <div class="form-group">
+                    <label for="profile_photo">Profile Photo (optional)</label>
+                    <div class="photo-upload">
+                        <div class="photo-preview" id="photoPreview" aria-live="polite">
+                            @if(!empty($patient?->profile_photo_path))
+                                <img src="{{ '/storage/' . ltrim($patient->profile_photo_path, '/') }}" alt="Current profile photo">
+                            @else
+                                No photo
+                            @endif
+                        </div>
+                        <input type="file" name="profile_photo" id="profile_photo" accept="image/jpeg,image/png,image/webp">
+                    </div>
+                    <small style="display: block; margin-top: 0.35rem; color: #527272;">Leave blank to use your saved profile photo. JPG, PNG, or WebP, maximum 2 MB.</small>
+                </div>
                 <div class="form-group">
                     <label>Preferred Appointment Date *</label>
                     <input type="date" name="appointment_date" id="appointment_date" value="{{ old('appointment_date') }}" required min="{{ date('Y-m-d') }}">
@@ -184,6 +224,24 @@
                             this.value = min;
                         }
                     });
+                });
+            </script>
+
+            <script>
+                document.getElementById('profile_photo')?.addEventListener('change', function () {
+                    const preview = document.getElementById('photoPreview');
+                    const [file] = this.files;
+
+                    if (!file) {
+                        preview.textContent = 'No photo';
+                        return;
+                    }
+
+                    const image = document.createElement('img');
+                    image.src = URL.createObjectURL(file);
+                    image.alt = 'Selected profile photo preview';
+                    image.onload = () => URL.revokeObjectURL(image.src);
+                    preview.replaceChildren(image);
                 });
             </script>
 

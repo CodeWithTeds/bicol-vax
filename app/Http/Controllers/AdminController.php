@@ -49,6 +49,9 @@ class AdminController extends Controller
             'card_no' => $patient?->card_no,
             'patient_source' => $patient?->source,
             'patient_status' => $patient?->status,
+            'profile_photo_url' => $patient?->profile_photo_path
+                ? '/storage/' . ltrim($patient->profile_photo_path, '/')
+                : null,
             'email' => $appointment->user?->email ?? $patient?->email,
             'birthday' => optional($appointment->birthday)->format('M d, Y'),
             'birthday_raw' => optional($appointment->birthday)->format('Y-m-d'),
