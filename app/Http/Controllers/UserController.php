@@ -6,6 +6,7 @@ use App\Models\Appointment;
 use App\Models\Patient;
 use App\Models\User;
 use App\Models\AdminNotification;
+use App\Models\ScheduledReminder;
 use App\Mail\OtpMail;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -235,6 +236,29 @@ class UserController extends Controller
         }
 
         return view('user.my-appointments', compact('appointments'));
+    }
+
+    public function reminders()
+    {
+        $user = auth()->user();
+        $reminders = collect();
+
+        if ($user) {
+            Appointment::where('user_id', $user->id)
+                ->where('status', 'approved')
+                ->whereNotNull('appointment_date')
+                ->get()
+                ->each(function (Appointment $appointment) use ($user): void {
+                    ScheduledReminder::syncForAppointment($appointment, $user->email);
+                });
+
+            $reminders = ScheduledReminder::where('user_id', $user->id)
+                ->orderBy('reminder_date')
+                ->orderBy('reminder_time')
+                ->get();
+        }
+
+        return view('user.reminders', compact('reminders'));
     }
 
     public function registerPatient(Request $request)

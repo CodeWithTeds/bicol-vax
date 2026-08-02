@@ -5,8 +5,10 @@ namespace App\Http\Controllers;
 use App\Models\Appointment;
 use App\Models\Patient;
 use App\Models\AdminNotification;
+use App\Models\ScheduledReminder;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\PatientApprovedMail;
+use App\Mail\ScheduledReminderMail;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Http\Request;
@@ -369,6 +371,10 @@ class AdminController extends Controller
             }
         }
 
+        if ($validated['status'] === 'approved') {
+            ScheduledReminder::syncForAppointment($appointment, $notificationEmail);
+        }
+
         return response()->json([
             'success' => true,
             'message' => 'Appointment status updated successfully.'
@@ -419,6 +425,50 @@ class AdminController extends Controller
     public function settings()
     {
         return view('admin.settings');
+    }
+
+    public function reminders()
+    {
+        Appointment::with('user')
+            ->where('status', 'approved')
+            ->whereNotNull('appointment_date')
+            ->get()
+            ->each(function (Appointment $appointment): void {
+                $patient = $this->findRelatedPatient($appointment);
+                ScheduledReminder::syncForAppointment(
+                    $appointment,
+                    $appointment->user?->email ?? $patient?->email
+                );
+            });
+
+        $reminders = ScheduledReminder::with('appointment')
+            ->orderBy('reminder_date')
+            ->orderBy('reminder_time')
+            ->get();
+
+        $upcomingCount = $reminders->where('reminder_date', '>=', today())->count();
+        $sentCount = $reminders->whereNotNull('sent_at')->count();
+        $dueTodayCount = $reminders->filter(fn (ScheduledReminder $reminder) => $reminder->reminder_date?->isToday())->count();
+
+        return view('admin.reminders', compact('reminders', 'upcomingCount', 'sentCount', 'dueTodayCount'));
+    }
+
+    public function sendReminder(ScheduledReminder $reminder)
+    {
+        if (empty($reminder->email)) {
+            return back()->with('error', 'This reminder has no patient email address.');
+        }
+
+        try {
+            Mail::to($reminder->email)->send(new ScheduledReminderMail($reminder));
+            $reminder->update(['sent_at' => now()]);
+        } catch (\Exception $e) {
+            logger()->error('Failed to send scheduled reminder ' . $reminder->id . ': ' . $e->getMessage());
+
+            return back()->with('error', 'Unable to send reminder email. Please check mail settings.');
+        }
+
+        return back()->with('success', 'Reminder email sent successfully.');
     }
 
     // ──────────────────────────────────────────────

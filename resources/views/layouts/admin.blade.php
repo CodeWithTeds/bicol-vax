@@ -351,6 +351,7 @@
                     <li><a href="{{ route('admin.dashboard') }}" class="@if(Route::currentRouteName() == 'admin.dashboard') active @endif">Dashboard</a></li>
                     <li><a href="{{ route('admin.patients') }}" class="@if(Route::currentRouteName() == 'admin.patients') active @endif">Patients</a></li>
                     <li><a href="{{ route('admin.appointments') }}" class="@if(Route::currentRouteName() == 'admin.appointments') active @endif">Appointments</a></li>
+                    <li><a href="{{ route('admin.reminders') }}" class="@if(Route::currentRouteName() == 'admin.reminders') active @endif">Reminders</a></li>
                     <li><a href="{{ route('admin.notifications') }}" class="@if(Route::currentRouteName() == 'admin.notifications') active @endif" style="position:relative;">
                         🔔 Notifications
                         @php $navUnreadCount = \App\Models\AdminNotification::unread()->count(); @endphp

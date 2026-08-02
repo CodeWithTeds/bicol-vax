@@ -42,6 +42,8 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin.otp'])->group
     Route::get('/appointments/json', [AdminController::class, 'appointmentsJson'])->name('appointments.json');
     Route::post('/appointments/{appointment}/status', [AdminController::class, 'updateAppointmentStatus'])->name('appointments.status');
     Route::delete('/appointments/{appointment}', [AdminController::class, 'destroyAppointment'])->name('appointments.destroy');
+    Route::get('/reminders', [AdminController::class, 'reminders'])->name('reminders');
+    Route::post('/reminders/{reminder}/send', [AdminController::class, 'sendReminder'])->name('reminders.send');
     Route::get('/notifications', [AdminController::class, 'notifications'])->name('notifications');
     Route::get('/notifications/json', [AdminController::class, 'notificationsJson'])->name('notifications.json');
     Route::post('/notifications/{notification}/read', [AdminController::class, 'markNotificationRead'])->name('notifications.read');
@@ -60,6 +62,7 @@ Route::prefix('user')->name('user.')->group(function () {
     Route::get('/booking', [UserController::class, 'booking'])->name('booking');
     Route::post('/booking', [UserController::class, 'storeBooking'])->name('booking.store');
     Route::get('/my-appointments', [UserController::class, 'myAppointments'])->name('my-appointments');
+    Route::get('/reminders', [UserController::class, 'reminders'])->name('reminders');
 });
 
 // Logout route
