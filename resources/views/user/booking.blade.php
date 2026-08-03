@@ -61,17 +61,17 @@
         }
 
         .photo-preview {
-            width: 68px;
-            height: 68px;
+            width: 120px;
+            height: 100px;
             display: grid;
             place-items: center;
             border: 1px dashed #8dbcbc;
-            border-radius: 50%;
+            border-radius: 6px;
             background: #fff;
             color: #527272;
             font-size: 0.75rem;
             overflow: hidden;
-            flex: 0 0 68px;
+            flex: 0 0 120px;
         }
 
         .photo-preview img {
@@ -154,18 +154,18 @@
             <div class="section-title">Patient Information</div>
             <div class="grid-2">
                 <div class="form-group">
-                    <label for="profile_photo">Profile Photo (optional)</label>
+                    <label for="profile_photo">Wound / Bite Photo (optional)</label>
                     <div class="photo-upload">
                         <div class="photo-preview" id="photoPreview" aria-live="polite">
                             @if(!empty($patient?->profile_photo_path))
-                                <img src="{{ '/storage/' . ltrim($patient->profile_photo_path, '/') }}" alt="Current profile photo">
+                                <img src="{{ '/storage/' . ltrim($patient->profile_photo_path, '/') }}" alt="Current wound/bite photo">
                             @else
                                 No photo
                             @endif
                         </div>
                         <input type="file" name="profile_photo" id="profile_photo" accept="image/jpeg,image/png,image/webp">
                     </div>
-                    <small style="display: block; margin-top: 0.35rem; color: #527272;">Leave blank to use your saved profile photo. JPG, PNG, or WebP, maximum 2 MB.</small>
+                    <small style="display: block; margin-top: 0.35rem; color: #527272;">Upload a photo of the wound or bite area (optional). JPG, PNG, or WebP, maximum 2 MB.</small>
                 </div>
                 <div class="form-group">
                     <label>Preferred Appointment Date *</label>
@@ -239,7 +239,7 @@
 
                     const image = document.createElement('img');
                     image.src = URL.createObjectURL(file);
-                    image.alt = 'Selected profile photo preview';
+                    image.alt = 'Selected wound/bite photo preview';
                     image.onload = () => URL.revokeObjectURL(image.src);
                     preview.replaceChildren(image);
                 });

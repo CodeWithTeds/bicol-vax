@@ -242,6 +242,70 @@
             border-width: 4px;
         }
 
+        .profile-card .wound-photo {
+            display: block;
+            width: 160px;
+            height: 130px;
+            object-fit: cover;
+            border-radius: 8px;
+            margin: 0 auto 0.9rem;
+            border: 2px solid #b2d8d8;
+            cursor: zoom-in;
+            transition: opacity 0.2s, box-shadow 0.2s;
+        }
+
+        .profile-card .wound-photo:hover {
+            opacity: 0.88;
+            box-shadow: 0 4px 18px rgba(43,143,144,0.22);
+        }
+
+        /* Lightbox overlay */
+        #photoLightbox {
+            display: none;
+            position: fixed;
+            inset: 0;
+            z-index: 9999;
+            background: rgba(0,0,0,0.88);
+            align-items: center;
+            justify-content: center;
+            cursor: zoom-out;
+        }
+
+        #photoLightbox.active {
+            display: flex;
+        }
+
+        #photoLightbox img {
+            max-width: 90vw;
+            max-height: 88vh;
+            border-radius: 10px;
+            box-shadow: 0 8px 48px rgba(0,0,0,0.55);
+            cursor: default;
+        }
+
+        #photoLightboxClose {
+            position: fixed;
+            top: 1rem;
+            right: 1.25rem;
+            background: rgba(255,255,255,0.15);
+            border: none;
+            color: #fff;
+            font-size: 2rem;
+            line-height: 1;
+            width: 2.5rem;
+            height: 2.5rem;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s;
+        }
+
+        #photoLightboxClose:hover {
+            background: rgba(255,255,255,0.3);
+        }
+
         .profile-details {
             display: grid;
             grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -320,10 +384,16 @@
             <button class="close-icon" onclick="closeProfileModal()" aria-label="Close profile">×</button>
             <div class="modal-header">
                 <h2 id="viewProfileTitle">Patient Profile</h2>
-                <p>Booking information and profile photo</p>
+                <p>Booking information and wound/bite photo</p>
             </div>
             <div class="profile-card" id="profileCardContent"></div>
         </div>
+    </div>
+
+    <!-- Photo Lightbox -->
+    <div id="photoLightbox" role="dialog" aria-modal="true" aria-label="Full size photo" onclick="closePhotoLightbox()">
+        <button id="photoLightboxClose" onclick="closePhotoLightbox()" aria-label="Close photo">×</button>
+        <img id="photoLightboxImg" src="" alt="Wound/bite photo full size" onclick="event.stopPropagation()">
     </div>
 
     <!-- Confirmation Modal -->
@@ -823,18 +893,44 @@
 
         function profileAvatar(apt, size) {
             if (apt.profile_photo_url) {
-                return `<img class="patient-avatar" src="${apt.profile_photo_url}" alt="${escapeHtml(apt.patient)} profile photo" style="width: ${size}px; height: ${size}px; flex-basis: ${size}px;" onerror="this.replaceWith(Object.assign(document.createElement('span'), {className: 'patient-avatar patient-avatar-fallback', textContent: '${initials(apt.patient)}'}))">`;
+                return `<img class="patient-avatar" src="${apt.profile_photo_url}" alt="${escapeHtml(apt.patient)} wound/bite photo" style="width: ${size}px; height: ${size}px; flex-basis: ${size}px;" onerror="this.replaceWith(Object.assign(document.createElement('span'), {className: 'patient-avatar patient-avatar-fallback', textContent: '${initials(apt.patient)}'}))">`;
             }
 
             return `<span class="patient-avatar patient-avatar-fallback" style="width: ${size}px; height: ${size}px; flex-basis: ${size}px;">${initials(apt.patient)}</span>`;
         }
+
+        function openPhotoLightbox(url) {
+            const lb = document.getElementById('photoLightbox');
+            document.getElementById('photoLightboxImg').src = url;
+            lb.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closePhotoLightbox() {
+            document.getElementById('photoLightbox').classList.remove('active');
+            document.getElementById('photoLightboxImg').src = '';
+            // keep body scroll locked if profile modal is still open, otherwise restore
+            const profileModal = document.getElementById('viewProfileModal');
+            if (!profileModal || !profileModal.classList.contains('active')) {
+                document.body.style.overflow = 'auto';
+            }
+        }
+
+        window.openPhotoLightbox = openPhotoLightbox;
+        window.closePhotoLightbox = closePhotoLightbox;
 
         function viewAppointmentProfile(id) {
             const apt = appointments.find(appointment => appointment.id === id);
             if (!apt) return;
 
             document.getElementById('profileCardContent').innerHTML = `
-                ${profileAvatar(apt, 112)}
+                ${apt.profile_photo_url
+                    ? `<div style="margin:0 auto 1rem;width:160px;height:130px;border-radius:8px;overflow:hidden;border:2px solid #b2d8d8;background:#f4fbfb;cursor:zoom-in;" onclick="openPhotoLightbox('${apt.profile_photo_url.replace(/'/g, "\\'")}')">
+                         <img src="${apt.profile_photo_url}" alt="Wound/bite photo" title="Click to enlarge" style="width:100%;height:100%;object-fit:cover;display:block;">
+                       </div>
+                       <p style="font-size:0.75rem;color:#668181;margin:-0.5rem 0 0.75rem;">🔍 Click photo to enlarge</p>`
+                    : `<span class="patient-avatar patient-avatar-fallback" style="width:112px;height:112px;margin:0 auto 0.9rem;display:flex;">${initials(apt.patient)}</span>`
+                }
                 <h3 style="margin: 0; color: #1e3131;">${escapeHtml(apt.patient)}</h3>
                 <p style="margin: 0.3rem 0 0; color: #668181;">${escapeHtml(apt.email || 'No email provided')}</p>
                 <div class="profile-details">
@@ -1258,6 +1354,7 @@
         // Close modal with Escape key
         document.addEventListener('keydown', function(event) {
             if (event.key === 'Escape') {
+                closePhotoLightbox();
                 closeProfileModal();
                 closeEditAptModal();
                 closeConfirmAptModal();

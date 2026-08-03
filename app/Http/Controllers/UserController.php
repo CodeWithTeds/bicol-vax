@@ -168,6 +168,14 @@ class UserController extends Controller
             ? Patient::where('email', $authUser->email)->latest()->first()
             : null;
 
+        // Resolve branch_id — prefer the user's own branch, then look for
+        // the earliest patient record that has a branch set (the registration record)
+        $branchId = $authUser?->branch_id
+            ?? Patient::where('email', $authUser?->email ?? '')
+                ->whereNotNull('branch_id')
+                ->oldest()
+                ->value('branch_id');
+
         // Ensure DB-required fields have defaults when omitted from the form
         if (! array_key_exists('weight', $validated) || $validated['weight'] === null) {
             $validated['weight'] = 0.00;
@@ -197,8 +205,8 @@ class UserController extends Controller
             $validated['case_no'] = $candidate;
         }
 
-        DB::transaction(function () use ($validated, $request) {
-            Patient::create($validated);
+        DB::transaction(function () use ($validated, $request, $branchId) {
+            $patient = Patient::create(array_merge($validated, ['branch_id' => $branchId]));
 
             $user = null;
             if (auth()->check()) {
@@ -208,16 +216,18 @@ class UserController extends Controller
             }
 
             Appointment::create([
-                'user_id' => $user?->id,
-                'full_name' => $validated['full_name'],
-                'birthday' => $validated['birthday'],
-                'age' => $validated['age'],
-                'gender' => $validated['gender'],
-                'address' => $validated['address'],
-                'contact' => $validated['contact'],
+                'branch_id'        => $branchId,
+                'user_id'          => $user?->id,
+                'patient_id'       => $patient->id,
+                'full_name'        => $validated['full_name'],
+                'birthday'         => $validated['birthday'],
+                'age'              => $validated['age'],
+                'gender'           => $validated['gender'],
+                'address'          => $validated['address'],
+                'contact'          => $validated['contact'],
                 'appointment_date' => $validated['appointment_date'],
-                'parent_guardian' => $validated['parent_guardian'] ?? null,
-                'status' => 'not_approved',
+                'parent_guardian'  => $validated['parent_guardian'] ?? null,
+                'status'           => 'not_approved',
             ]);
         });
 

@@ -49,29 +49,42 @@ class AdminController extends Controller
 
     private function findRelatedPatient(Appointment $appointment): ?Patient
     {
-        $branchId = $this->branchId();
+        $branchId = $appointment->branch_id ?? $this->branchId();
         $email    = $appointment->user?->email;
 
+        // 1. Match by email (most reliable) — always take the latest record so
+        //    a freshly uploaded photo is never shadowed by an older patient row.
         if (! empty($email)) {
-            $patient = Patient::where('branch_id', $branchId)
+            // Prefer latest record within the same branch that has a photo
+            $patient = Patient::when($branchId, fn ($q) => $q->where('branch_id', $branchId))
                 ->where('email', $email)
                 ->latest()->first();
             if ($patient) return $patient;
+
+            // Fallback: any branch, latest record
+            $patient = Patient::where('email', $email)->latest()->first();
+            if ($patient) return $patient;
         }
 
-        $patient = Patient::where('branch_id', $branchId)
+        // 2. Match by full_name + contact within branch
+        $patient = Patient::when($branchId, fn ($q) => $q->where('branch_id', $branchId))
             ->where('full_name', $appointment->full_name)
             ->when($appointment->contact, fn ($q) => $q->where('contact', $appointment->contact))
             ->latest()->first();
 
-        return $patient ?? Patient::where('branch_id', $branchId)
+        if ($patient) return $patient;
+
+        // 3. Loose match by full_name within branch
+        return Patient::when($branchId, fn ($q) => $q->where('branch_id', $branchId))
             ->where('full_name', $appointment->full_name)
             ->latest()->first();
     }
 
     private function buildAppointmentPayload(Appointment $appointment): array
     {
-        $patient = $this->findRelatedPatient($appointment);
+        // Use the directly linked patient if available (set at booking time),
+        // otherwise fall back to the fuzzy search for older records.
+        $patient = $appointment->patient ?? $this->findRelatedPatient($appointment);
 
         return [
             'id'                 => $appointment->id,
