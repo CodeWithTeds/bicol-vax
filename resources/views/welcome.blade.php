@@ -6,7 +6,7 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>BicolVax | Animal Bite & Vaccination Center</title>
     <link rel="preconnect" href="https://fonts.bunny.net">
-    <link href="https://fonts.bunny.net/css?family=fraunces:600,700|plus-jakarta-sans:400,500,600,700" rel="stylesheet" />
+    <link href="https://fonts.bunny.net/css?family=fraunces:600,700,800|plus-jakarta-sans:400,500,600,700" rel="stylesheet" />
     <style>
         :root {
             --primary: #2b8f90;
@@ -15,219 +15,156 @@
             --text-dark: #0f2d31;
             --text-muted: #5f7074;
             --border: rgba(15, 45, 49, 0.12);
-            --surface: rgba(255, 255, 255, 0.86);
-            --shadow: 0 20px 50px rgba(8, 24, 27, 0.12);
+            --bg: #f5f0cc;
+            --navbar-bg: #b8962e;
+            --card-bg: #6fa89a;
         }
 
         * { box-sizing: border-box; }
         html, body { margin: 0; min-height: 100%; }
         body {
             font-family: "Plus Jakarta Sans", sans-serif;
-            color: var(--text-dark);
-            background:
-                radial-gradient(circle at top left, rgba(66, 212, 222, 0.2), transparent 28%),
-                radial-gradient(circle at bottom right, rgba(43, 143, 144, 0.18), transparent 26%),
-                linear-gradient(180deg, #f7fbfb 0%, #eef7f7 100%);
+            color: #1a1a1a;
+            background: var(--bg);
             overflow-x: hidden;
         }
 
-        a { color: var(--primary); }
+        a { color: var(--primary); text-decoration: none; }
 
-        .page {
-            position: relative;
-            min-height: 100vh;
-            padding: 1.25rem;
-        }
-
-        .blob {
-            position: fixed;
-            z-index: 0;
-            border-radius: 999px;
-            filter: blur(4px);
-            opacity: 0.35;
-            pointer-events: none;
-        }
-
-        .blob-one { width: 18rem; height: 18rem; left: -6rem; top: -5rem; background: rgba(66, 212, 222, 0.35); }
-        .blob-two { width: 22rem; height: 22rem; right: -8rem; top: 10rem; background: rgba(43, 143, 144, 0.22); }
-        .blob-three { width: 16rem; height: 16rem; right: 12%; bottom: -6rem; background: rgba(67, 98, 222, 0.14); }
-
-        .shell {
-            width: min(1180px, calc(100% - 2rem));
-            margin: 0 auto;
-            position: relative;
-            z-index: 1;
-        }
-
-        .topbar {
+        /* NAVBAR */
+        .navbar {
+            background: var(--navbar-bg);
+            padding: 0.85rem 2.5rem;
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 1rem 1.25rem;
-            border: 1px solid var(--border);
-            border-radius: 22px;
-            background: var(--surface);
-            backdrop-filter: blur(14px);
-            box-shadow: var(--shadow);
         }
 
-        .brand {
-            display: flex;
-            align-items: center;
-            gap: 0.85rem;
-        }
+        .navbar-brand { display: flex; align-items: center; gap: 0.75rem; }
 
-        .brand img {
-            width: 60px;
-            height: 60px;
+        .navbar-brand img {
+            width: 56px; height: 56px;
             object-fit: contain;
-            border-radius: 16px;
+            border-radius: 50%;
+            border: 2px solid rgba(255,255,255,0.3);
         }
 
-        .brand strong { font-size: 1.15rem; letter-spacing: 0.2px; }
-        .brand span { font-size: 0.94rem; color: var(--text-muted); }
+        .navbar-brand-text strong { display: block; font-size: 1.3rem; font-weight: 700; color: #fff; }
+        .navbar-brand-text span { font-size: 0.82rem; color: rgba(255,255,255,0.8); }
 
-        .chip-link {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.45rem;
-            padding: 0.75rem 1rem;
-            border-radius: 999px;
-            text-decoration: none;
-            font-weight: 700;
-            border: 1px solid rgba(43, 143, 144, 0.18);
-            background: rgba(43, 143, 144, 0.08);
-            transition: transform 180ms ease, background 180ms ease;
+        .navbar-links {
+            display: flex; align-items: center; gap: 2.5rem;
+            list-style: none; margin: 0; padding: 0;
         }
 
-        .chip-link:hover { transform: translateY(-1px); background: rgba(43, 143, 144, 0.12); }
+        .navbar-links a {
+            color: rgba(255,255,255,0.92);
+            font-weight: 600; font-size: 0.92rem;
+            letter-spacing: 0.5px; text-transform: uppercase;
+            transition: color 180ms ease;
+        }
 
+        .navbar-links a:hover, .navbar-links a.active {
+            color: #fff;
+            text-decoration: underline;
+            text-underline-offset: 4px;
+        }
+
+        /* HERO */
         .hero {
-            margin-top: 1.25rem;
-            padding: 2.5rem 0 2rem;
+            text-align: center;
+            padding: 3rem 1.5rem 2rem;
+            max-width: 820px;
+            margin: 0 auto;
         }
 
-        .hero-inner {
-            display: grid;
-            grid-template-columns: 1.15fr 0.85fr;
-            gap: 2rem;
-            align-items: start;
-        }
-
-        .hero-copy {
-            padding: 1.5rem 0;
-            display: flex;
-            flex-direction: column;
-            gap: 1rem;
-        }
-
-        .eyebrow {
-            display: inline-flex;
-            align-self: flex-start;
-            padding: 0.5rem 0.85rem;
-            border-radius: 999px;
-            background: rgba(43, 143, 144, 0.09);
-            color: var(--primary);
-            font-weight: 700;
-            font-size: 0.88rem;
-            letter-spacing: 0.2px;
-        }
-
-        h1 {
-            margin: 0;
+        .hero h1 {
             font-family: "Fraunces", serif;
-            font-size: clamp(2.6rem, 5vw, 4.8rem);
-            line-height: 0.98;
-            letter-spacing: -0.02em;
-            max-width: 10ch;
+            font-size: clamp(2.4rem, 4.5vw, 3.6rem);
+            font-weight: 800;
+            line-height: 1.15;
+            color: #1a1a1a;
+            margin: 0 0 1rem;
         }
 
-        .lede {
-            margin: 0;
-            max-width: 62ch;
-            font-size: 1.05rem;
-            line-height: 1.75;
-            color: var(--text-muted);
+        .hero p {
+            font-size: 1.1rem; color: #333;
+            line-height: 1.7; margin: 0;
         }
 
-        .buttons {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 0.9rem;
-            margin-top: 0.35rem;
-        }
-
-        .button {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 0.5rem;
-            min-width: 176px;
-            min-height: 48px;
-            padding: 0.9rem 1.3rem;
-            border-radius: 14px;
-            border: 1px solid transparent;
-            text-decoration: none;
-            cursor: pointer;
-            font-weight: 700;
-            font-size: 0.98rem;
-            transition: transform 180ms ease, box-shadow 180ms ease, background 180ms ease;
-        }
-
-        .button.primary {
-            color: white;
-            background: linear-gradient(135deg, var(--primary), var(--primary-light));
-            box-shadow: 0 14px 26px rgba(43, 143, 144, 0.22);
-        }
-
-        .button.secondary {
-            color: var(--text-dark);
-            background: rgba(255, 255, 255, 0.75);
-            border-color: var(--border);
-        }
-
-        .button:hover { transform: translateY(-2px); }
-
-        .feature-grid {
+        /* PHOTO GALLERY */
+        .photo-gallery {
             display: grid;
-            grid-template-columns: repeat(2, minmax(0, 1fr));
-            gap: 1rem;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1.5rem;
+            max-width: 1060px;
+            margin: 0 auto 2rem;
+            padding: 0 1.5rem;
+        }
+
+        .photo-gallery-item {
+            border-radius: 6px;
+            overflow: hidden;
+            box-shadow: 4px 6px 18px rgba(0,0,0,0.18);
+            aspect-ratio: 4/3;
+            background: #ddd;
+        }
+
+        .photo-gallery-item img {
+            width: 100%; height: 100%; object-fit: cover; display: block;
+            transition: transform 400ms cubic-bezier(0.2,0.9,0.2,1);
+        }
+
+        .photo-gallery-item:hover img { transform: scale(1.04); }
+
+        /* FEATURE CARDS */
+        .features {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1.25rem;
+            max-width: 1060px;
+            margin: 0 auto 2rem;
+            padding: 0 1.5rem;
         }
 
         .feature-card {
-            padding: 1.1rem;
-            border-radius: 20px;
-            border: 1px solid var(--border);
-            background: rgba(255, 255, 255, 0.8);
-            box-shadow: var(--shadow);
+            background: var(--card-bg);
+            border-radius: 14px;
+            padding: 1.75rem 1.25rem;
+            text-align: center;
         }
 
-        .feature-icon { width: 42px; height: 42px; color: var(--primary); }
-        .feature-card h2 {
-            margin: 0.9rem 0 0.35rem;
-            font-size: 1.05rem;
-        }
-        .feature-card p {
-            margin: 0;
-            color: var(--text-muted);
-            line-height: 1.6;
-            font-size: 0.95rem;
-        }
+        .feature-icon { width: 44px; height: 44px; margin: 0 auto 0.85rem; color: #1a1a1a; }
+        .feature-card h3 { font-size: 1rem; font-weight: 700; margin: 0 0 0.5rem; color: #1a1a1a; }
+        .feature-card p { font-size: 0.9rem; line-height: 1.6; margin: 0; color: #1a2a2a; }
 
-        .hero-footer {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 0.6rem;
-            margin-top: 1rem;
+        /* CTA BUTTONS */
+        .cta-btn {
+            display: inline-flex; align-items: center; gap: 0.5rem;
+            min-width: 140px; min-height: 38px;
+            padding: 0.6rem 1.2rem;
+            border-radius: 8px; border: 2px solid transparent;
+            font: inherit; font-weight: 700; font-size: 0.88rem;
+            cursor: pointer;
+            transition: transform 180ms ease, box-shadow 180ms ease;
         }
+        .cta-primary {
+            background: var(--primary);
+            color: #fff;
+            box-shadow: 0 6px 16px rgba(43,143,144,0.28);
+        }
+        .cta-primary:hover { transform: translateY(-2px); }
+        .cta-secondary {
+            background: transparent;
+            color: var(--primary);
+            border-color: var(--primary);
+        }
+        .cta-secondary:hover { background: rgba(43,143,144,0.08); transform: translateY(-2px); }
 
-        .mini-pill {
-            padding: 0.55rem 0.85rem;
-            border-radius: 999px;
-            background: rgba(255, 255, 255, 0.72);
-            border: 1px solid var(--border);
-            color: var(--text-muted);
-            font-size: 0.9rem;
+        @media (max-width: 900px) {
+            .features { grid-template-columns: repeat(2, 1fr); }
+            .photo-gallery { grid-template-columns: repeat(2, 1fr); }
+            .photo-gallery-item:last-child { grid-column: span 2; }
         }
 
         .login-modal-overlay,
@@ -752,176 +689,482 @@
         }
 
         @media (max-width: 640px) {
-            .page { padding: 0.75rem; }
-            .shell { width: calc(100% - 1rem); }
-            .topbar { padding: 0.9rem; flex-direction: column; align-items: stretch; gap: 0.8rem; }
-            .brand { justify-content: center; }
-            .chip-link { align-self: center; }
-            .hero { padding-top: 1rem; }
-            .buttons, .modal-buttons, .login-buttons, .admin-buttons { flex-direction: column; }
-            .feature-grid { grid-template-columns: 1fr; }
+            .navbar { padding: 0.75rem 1rem; flex-direction: column; gap: 0.75rem; }
+            .navbar-links { gap: 1.25rem; flex-wrap: wrap; justify-content: center; }
+            .features { grid-template-columns: 1fr 1fr; }
+            .photo-gallery { grid-template-columns: 1fr; }
+            .photo-gallery-item:last-child { grid-column: span 1; }
             .form-group.row { grid-template-columns: 1fr; }
-            .login-modal-content,
-            .admin-modal-content,
-            .modal-content { padding: 1.2rem; border-radius: 20px; }
-            h1 { max-width: none; }
+            .modal-buttons, .login-buttons, .admin-buttons { flex-direction: column; }
+            .login-modal-content, .admin-modal-content, .modal-content { padding: 1.2rem; border-radius: 20px; }
         }
         </style>
     </head>
     <body>
-        <div class="page">
-            <div class="blob blob-one"></div>
-            <div class="blob blob-two"></div>
-            <div class="blob blob-three"></div>
 
-            <header class="shell topbar">
-                <div class="brand" style="flex-direction: row; align-items: center; gap: 0.75rem;">
-                    <img src="{{ asset('logo.png') }}" alt="BicolVax Logo" style="width: 60px; height: 60px; object-fit: contain; background: transparent;">
-                    <div>
-                        <strong style="display: block;">BicolVax</strong>
-                        <span>Animal Bite &amp; Vaccination Center</span>
-                    </div>
-                </div>
+    <!-- NAVBAR -->
+    <nav class="navbar">
+        <div class="navbar-brand">
+            <img src="{{ asset('logo.png') }}" alt="BicolVax Logo">
+            <div class="navbar-brand-text">
+                <strong>BicolVax</strong>
+                <span>Animal Bite &amp; Vaccination Center</span>
+            </div>
+        </div>
+        <ul class="navbar-links">
+            <li><a href="#" class="active">HOME</a></li>
+            <li><a href="#">ABOUT US</a></li>
+            <li><a href="#">FAQs</a></li>
+            <li><a href="#" onclick="openAdminModal(); return false;">CONTACT US</a></li>
+            <li><a href="#" onclick="openLoginModal(); return false;" style="background:rgba(255,255,255,0.18); padding:0.35rem 0.9rem; border-radius:6px;">LOGIN</a></li>
+        </ul>
+    </nav>
 
-                @php
-                    $adminLink = Route::has('login') ? route('login') : '#';
-                @endphp
-                <a class="chip-link" href="#" onclick="openAdminModal(); return false;" aria-label="Admin access">
-                    <span aria-hidden="true">→</span>
-                    <span>Admin</span>
-                </a>
-            </header>
+    <!-- HERO -->
+    <section class="hero">
+        <h1>Automated Vaccination<br>Scheduling &amp; Reminder</h1>
+        <p>Book your Anti-Rabies vaccination appointment online. Get Automated<br>reminder for your complete vaccination schedule.</p>
 
-            <main class="hero shell">
-                <section class="hero-inner">
-                    <div class="hero-copy">
-                        <div class="eyebrow">Safe scheduling • Smart reminders • Better compliance</div>
+    </section>
 
-                        <h1>Automated Vaccination Scheduling &amp; Reminder</h1>
+    <!-- PHOTO GALLERY -->
+    <div class="photo-gallery">
+        <div class="photo-gallery-item">
+            <img src="{{ asset('images/hover1.png') }}" alt="BicolVax clinic waiting area" loading="lazy">
+        </div>
+        <div class="photo-gallery-item">
+            <img src="{{ asset('images/hover2.png') }}" alt="BicolVax clinic consultation area" loading="lazy">
+        </div>
+        <div class="photo-gallery-item">
+            <img src="{{ asset('images/hover3.png') }}" alt="BicolVax clinic entrance" loading="lazy">
+        </div>
+    </div>
 
-                        <p class="lede">
-                            Book your Anti-Rabies vaccination appointment online. Get timely reminders for every dose,
-                            track the full vaccination schedule, and manage your visits with ease.
-                        </p>
+    <!-- FEATURE CARDS -->
+    <div class="features">
+        <div class="feature-card">
+            <svg class="feature-icon" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <rect x="18" y="10" width="28" height="44" rx="7" stroke="currentColor" stroke-width="4"/>
+                <path d="M24 24H40M24 31H40M24 38H34" stroke="currentColor" stroke-width="4" stroke-linecap="round"/>
+            </svg>
+            <h3>Easy booking</h3>
+            <p>Book your vaccination appointment in just a few taps on your smartphone</p>
+        </div>
+        <div class="feature-card">
+            <svg class="feature-icon" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M32 54c3.2 0 6-2.3 6.6-5.4H25.4c.6 3.1 3.4 5.4 6.6 5.4ZM46 23c0-7.2-5.3-13-12-13S22 15.8 22 23c0 11-5 13-5 13h34s-5-2-5-13Z" fill="currentColor"/>
+            </svg>
+            <h3>Email Reminder</h3>
+            <p>Receive automatic email notifications before each vaccination dose.</p>
+        </div>
+        <div class="feature-card">
+            <svg class="feature-icon" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="32" cy="32" r="20" stroke="currentColor" stroke-width="4"/>
+                <path d="m22 32 7 7 14-15" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            <h3>Complete Schedule</h3>
+            <p>Auto-generated vaccination schedule: Day 0, 3, 7, 14, and 21/28</p>
+        </div>
+        <div class="feature-card">
+            <svg class="feature-icon" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="32" cy="32" r="20" stroke="currentColor" stroke-width="4"/>
+                <path d="M32 22v10l6 4" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            <h3>Clinic Hours</h3>
+            <p>Clinic Hours:<br>Monday - Saturday<br>8:00 am - 5:00 pm</p>
+        </div>
+    </div>
 
-                        <div class="buttons">
-                            <button id="openRegisterBtn" class="button primary" onclick="openRegisterModal()">
-                                <span aria-hidden="true">✦</span>
-                                <span>Sign Up Here</span>
-                            </button>
+    <!-- TERMS, REMINDERS, PRIVACY SECTION -->
+    <div class="terms-section">
+        <p class="terms-intro">Please review all information carefully before proceeding with your appointment request. Ensure that all details provided are complete and accurate.</p>
 
-                            <a href="#" onclick="openLoginModal(); return false;" class="button secondary">
-                                <span aria-hidden="true">→</span>
-                                <span>Login to Account</span>
-                            </a>
-                        </div>
-                    </div>
-
-                    <div class="feature-grid">
-                        <article class="feature-card">
-                            <svg class="feature-icon" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                                <rect x="18" y="10" width="28" height="44" rx="7" stroke="currentColor" stroke-width="4"/>
-                                <path d="M24 24H40M24 31H40M24 38H34" stroke="currentColor" stroke-width="4" stroke-linecap="round"/>
-                            </svg>
-                            <h2>Easy booking</h2>
-                            <p>Book your vaccination appointment in just a few taps on your smartphone.</p>
-                        </article>
-
-                        <article class="feature-card">
-                            <svg class="feature-icon" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                                <path d="M32 54c3.2 0 6-2.3 6.6-5.4H25.4c.6 3.1 3.4 5.4 6.6 5.4ZM46 23c0-7.2-5.3-13-12-13S22 15.8 22 23c0 11-5 13-5 13h34s-5-2-5-13Z" fill="currentColor"/>
-                            </svg>
-                            <h2>SMS Reminder</h2>
-                            <p>Receive automatic SMS notifications before each vaccination dose.</p>
-                        </article>
-
-                        <article class="feature-card">
-                            <svg class="feature-icon" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                                <circle cx="32" cy="32" r="20" stroke="currentColor" stroke-width="4"/>
-                                <path d="m22 32 7 7 14-15" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
-                            </svg>
-                            <h2>Complete Schedule</h2>
-                            <p>Auto-generated schedule for Day 0, 3, 7, 14, and 21/28.</p>
-                        </article>
-
-                        <article class="feature-card">
-                            <svg class="feature-icon" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                                <rect x="20" y="8" width="24" height="48" rx="4" stroke="currentColor" stroke-width="4"/>
-                                <path d="M30 48H34" stroke="currentColor" stroke-width="4" stroke-linecap="round"/>
-                            </svg>
-                            <h2>Mobile Friendly</h2>
-                            <p>Access vaccination records anytime, anywhere on your phone.</p>
-                        </article>
-                    </div>
-
-                    <div class="hero-footer">
-                        <span class="mini-pill">Anti-Rabies vaccination</span>
-                        <span class="mini-pill">Automated follow-up</span>
-                        <span class="mini-pill">Secure patient access</span>
-                    </div>
-                </section>
-            </main>
+        <div class="terms-reminders">
+            <p class="reminders-title">REMINDERS:</p>
+            <p>• Please provide a valid and active email address to receive appointment confirmations and vaccination reminders.</p>
+            <p>• Appointment requests are subject to approval by BicolVax Clinic.</p>
+            <p>• Patients are advised to arrive on time for their scheduled appointments.</p>
         </div>
 
+        <h2 class="terms-heading">TERMS AND CONDITIONS</h2>
+        <p>This appointment and vaccination scheduling system operates on a first-come, first-served basis, subject to schedule availability and clinic approval. Users are responsible for providing accurate and complete information. Incorrect, incomplete, or misleading information may result in the cancellation or rejection of the appointment request. Patient information collected through the system will be used solely for appointment scheduling, vaccination monitoring, and clinic record management purposes. BicolVax Clinic reserves the right to approve, reschedule, or decline appointment requests based on schedule availability and operational requirements.</p>
+        <p>The clinic shall not be held responsible for missed notifications caused by incorrect email addresses, internet connectivity issues, or other technical problems beyond its control. By proceeding with this application, I acknowledge that I have read and understood the Terms and Conditions of the BicolVax Online Appointment and Vaccination Scheduling System. I consent to the collection, processing, and use of my information for clinic-related services in accordance with applicable data privacy regulations.</p>
+
+        <h2 class="terms-heading">PRIVACY POLICY</h2>
+        <p>BicolVax Clinic is committed to protecting your personal information and maintaining your privacy.<br>
+        The information you provide through this system, including your name, contact details, appointment information, and vaccination records, will be collected and used solely for appointment scheduling, vaccination monitoring, patient record management, and other clinic-related services.<br>
+        Your personal information will be kept confidential and will only be accessed by authorized clinic personnel when necessary to provide healthcare services.</p>
+        <p>BicolVax Clinic will take reasonable measures to protect your information from unauthorized access, disclosure, alteration, or misuse. The clinic will not sell, share, or disclose your personal information to third parties unless required by law or authorized by the patient. By using this system, you consent to the collection, processing, and storage of your personal information for legitimate healthcare and administrative purposes in accordance with the Data Privacy Act of 2012.</p>
+
+        <hr class="terms-divider">
+
+        <div class="agree-row">
+            <input type="checkbox" id="agreeCheck">
+            <label for="agreeCheck">I AGREE AND CONTINUE</label>
+        </div>
+
+        <div style="text-align:center; margin-top:1.5rem;">
+            <button class="signup-btn" id="signupNowBtn" onclick="handleSignupNow()">SIGN UP NOW</button>
+        </div>
+    </div>
+
+    <!-- HOW IT WORKS STEPS -->
+    <div class="steps-section">
+        <div class="steps-grid">
+            <div class="step-card">
+                <div class="step-number">1</div>
+                <h3>Register &amp; Fill Form</h3>
+                <p>Create your account and complete the animal bite information form</p>
+            </div>
+            <div class="step-card">
+                <div class="step-number">2</div>
+                <h3>Book Appointment</h3>
+                <p>Select your preferred date and time for your first vaccination</p>
+            </div>
+            <div class="step-card">
+                <div class="step-number">3</div>
+                <h3>Get a Reminders</h3>
+                <p>Receive email reminders for all your scheduled vaccination dates</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- FOOTER -->
+    <footer class="site-footer">
+        <strong>BicolVax – Baao</strong><br>
+        Animal Bite &amp; Vaccination Center<br>
+        &copy; 2026 BicolVax. All rights reserved.
+    </footer>
+
+    <style>
+        /* TERMS SECTION */
+        .terms-section {
+            max-width: 900px;
+            margin: 0 auto 0;
+            padding: 2rem 2.5rem 1.5rem;
+            border-top: 1px solid rgba(0,0,0,0.12);
+            border-bottom: 1px solid rgba(0,0,0,0.12);
+            font-size: 0.88rem;
+            line-height: 1.65;
+            color: #222;
+        }
+
+        .terms-intro { text-align: center; margin-bottom: 1rem; }
+
+        .terms-reminders { margin-bottom: 1rem; }
+
+        .reminders-title {
+            color: #c0392b;
+            font-weight: 700;
+            font-size: 0.95rem;
+            text-align: center;
+            margin-bottom: 0.4rem;
+        }
+
+        .terms-heading {
+            font-size: 0.95rem;
+            font-weight: 800;
+            text-align: center;
+            letter-spacing: 0.5px;
+            margin: 1.25rem 0 0.6rem;
+            color: #1a1a1a;
+        }
+
+        .terms-divider {
+            border: none;
+            border-top: 1px solid rgba(0,0,0,0.15);
+            margin: 1.25rem 0 1rem;
+        }
+
+        .agree-row {
+            display: flex;
+            align-items: center;
+            gap: 0.65rem;
+            font-weight: 600;
+            font-size: 0.92rem;
+        }
+
+        .agree-row input[type="checkbox"] {
+            width: 17px; height: 17px; cursor: pointer;
+            accent-color: var(--primary);
+        }
+
+        .signup-btn {
+            background: var(--primary);
+            color: #f5f0cc;
+            border: none;
+            border-radius: 8px;
+            padding: 0.85rem 3.5rem;
+            font-size: 1rem;
+            font-weight: 800;
+            letter-spacing: 1px;
+            cursor: pointer;
+            transition: background 200ms ease, transform 180ms ease;
+        }
+
+        .signup-btn:hover { background: #237778; transform: translateY(-2px); }
+        .signup-btn:disabled { opacity: 0.45; cursor: not-allowed; transform: none; }
+
+        /* STEPS SECTION */
+        .steps-section {
+            background: #e8eeea;
+            padding: 2rem 1.5rem;
+        }
+
+        .steps-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1.5rem;
+            max-width: 900px;
+            margin: 0 auto;
+            text-align: center;
+        }
+
+        .step-card { padding: 0.5rem; }
+
+        .step-number {
+            width: 50px; height: 50px;
+            border-radius: 50%;
+            background: var(--primary);
+            color: #fff;
+            font-size: 1.25rem;
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 0.75rem;
+        }
+
+        .step-card h3 { font-size: 1rem; font-weight: 700; margin: 0 0 0.4rem; }
+        .step-card p { font-size: 0.85rem; color: #3a4a3a; line-height: 1.55; margin: 0; }
+
+        /* FOOTER */
+        .site-footer {
+            background: var(--navbar-bg);
+            color: rgba(255,255,255,0.88);
+            text-align: center;
+            padding: 1.25rem 1rem;
+            font-size: 0.85rem;
+            line-height: 1.8;
+        }
+
+        .site-footer strong { color: #fff; font-size: 0.92rem; }
+
+        @media (max-width: 640px) {
+            .steps-grid { grid-template-columns: 1fr; }
+            .terms-section { padding: 1.5rem 1.25rem; }
+        }
+    </style>
+
+    <script>
+        function handleSignupNow() {
+            const agreed = document.getElementById('agreeCheck').checked;
+            if (!agreed) {
+                alert('Please check "I AGREE AND CONTINUE" before signing up.');
+                return;
+            }
+            openRegisterModal();
+        }
+
+        // Disable signup button until checkbox is checked
+        document.addEventListener('DOMContentLoaded', function() {
+            const btn = document.getElementById('signupNowBtn');
+            const check = document.getElementById('agreeCheck');
+            if (btn && check) {
+                btn.disabled = true;
+                check.addEventListener('change', function() {
+                    btn.disabled = !this.checked;
+                });
+            }
+        });
+    </script>
+
         <!-- Login Modal -->
+        <!-- ═══ LOGIN MODAL ═══ -->
         <div class="login-modal-overlay" id="loginModal">
             <div class="login-modal-content">
-                <button class="login-close-icon" onclick="closeLoginModal()">×</button>
-                
-                <div class="login-modal-header">
-                    <h2>Welcome Back</h2>
-                    <p>Login to your BicolVax Account</p>
+                <button class="login-close-icon" onclick="closeLoginModal()" aria-label="Close">×</button>
+
+                <!-- User icon -->
+                <div style="text-align:center; margin-bottom:0.5rem;">
+                    <svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                        <circle cx="24" cy="17" r="9" stroke="#1a1a1a" stroke-width="2.5"/>
+                        <path d="M6 40c0-9.94 8.06-18 18-18s18 8.06 18 18" stroke="#1a1a1a" stroke-width="2.5" stroke-linecap="round"/>
+                    </svg>
                 </div>
+
+                <h2 class="lm-title">Sign Up</h2>
 
                 <div class="login-feedback" id="loginFeedback" hidden></div>
 
                 <form id="loginForm" onsubmit="handleLoginSubmit(event)">
                     <div id="loginCredentialsStep">
-                        <div class="login-form-group">
-                            <label for="login-email">Email Address *</label>
-                            <input type="email" id="login-email" name="email" placeholder="your.email@example.com" required>
+                        <div class="lm-group">
+                            <label class="lm-label" for="login-email">Email Address*</label>
+                            <input class="lm-input" type="email" id="login-email" name="email" placeholder="your.email@example.com" required>
                         </div>
 
-                        <div class="login-form-group">
-                            <label for="login-password">Password *</label>
+                        <div class="lm-group">
+                            <label class="lm-label" for="login-password">Password*</label>
                             <div style="position:relative;">
-                                <input type="password" id="login-password" name="password" placeholder="Enter your password" required style="width:100%; padding-right:44px;">
-                                <button type="button" id="toggleLoginPassword" aria-label="Show password" style="position:absolute; right:8px; top:50%; transform:translateY(-50%); border:none; background:transparent; cursor:pointer; font-weight:700; color:#374151;"></button>
+                                <input class="lm-input" type="password" id="login-password" name="password" placeholder="••••••••••" required style="width:100%; padding-right:44px;">
+                                <button type="button" id="toggleLoginPassword" aria-label="Show password" style="position:absolute; right:10px; top:50%; transform:translateY(-50%); border:none; background:transparent; cursor:pointer; color:#555;"></button>
                             </div>
                         </div>
 
-                        <div class="login-remember">
-                            <input type="checkbox" id="remember" name="remember">
-                            <label for="remember" style="margin: 0; font-weight: 500; cursor: pointer;">Remember me</label>
-                        </div>
-
-                        <div class="login-signup-link">
-                            Don't have an account? <a href="#" onclick="closeLoginModal(); openRegisterModal(); return false;">Register here</a>
+                        <div class="lm-agree-row">
+                            <input type="checkbox" id="loginAgree" style="width:16px;height:16px;accent-color:#2b8f90;cursor:pointer;">
+                            <label for="loginAgree" style="cursor:pointer; font-size:0.82rem; color:#333;">Your data will be store in a centralized database. I haved read and agree to the terms, condition and privacy policy.</label>
                         </div>
                     </div>
 
                     <div id="loginOtpStep" style="display:none;">
-                        <div class="login-form-group">
-                            <label for="login-otp">OTP Code *</label>
-                            <input type="text" id="login-otp" name="code" inputmode="numeric" maxlength="6" placeholder="Enter the 6-digit OTP">
+                        <div class="lm-group">
+                            <label class="lm-label" for="login-otp">OTP Code *</label>
+                            <input class="lm-input" type="text" id="login-otp" name="code" inputmode="numeric" maxlength="6" placeholder="Enter the 6-digit OTP">
                         </div>
-
-                        <div class="login-security-note">
+                        <div class="login-security-note" style="font-size:0.82rem; margin-top:0.5rem;">
                             We sent an OTP code to your email. Enter it here to continue.
                         </div>
                     </div>
 
-                    <div class="login-buttons">
-                        <button type="button" class="login-button close" onclick="closeLoginModal()">
-                            <span>Cancel</span>
-                        </button>
-                        <button type="submit" class="login-button submit" id="loginActionButton">
-                            <span id="loginActionLabel">Login</span>
-                        </button>
+                    <button type="submit" class="lm-submit-btn" id="loginActionButton">
+                        <span id="loginActionLabel">Log In</span>
+                    </button>
+
+                    <div class="lm-or-row">
+                        <span></span>
+                        <span class="lm-or-text">Or</span>
+                        <span></span>
+                    </div>
+
+                    <button type="button" class="lm-google-btn" onclick="alert('Google sign-in coming soon.')">
+                        <svg width="20" height="20" viewBox="0 0 48 48" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/><path fill="none" d="M0 0h48v48H0z"/></svg>
+                        Sign In with Google
+                    </button>
+
+                    <div style="text-align:center; margin-top:0.75rem; font-size:0.82rem; color:#555;">
+                        Don't have an account? <a href="#" onclick="closeLoginModal(); openRegisterModal(); return false;" style="color:#2b8f90; font-weight:700;">Register here</a>
                     </div>
                 </form>
             </div>
         </div>
+
+        <style>
+            /* Login modal — new design */
+            .login-modal-overlay {
+                position: fixed; inset: 0; z-index: 999;
+                display: none; align-items: center; justify-content: center;
+                padding: 0.75rem;
+                background: url('{{ asset("images/background-login.png") }}') center/cover no-repeat;
+            }
+            .login-modal-overlay::before {
+                content: ''; position: absolute; inset: 0;
+                background: rgba(0,0,0,0.45);
+            }
+            .login-modal-overlay.active { display: flex; }
+
+            .login-modal-content {
+                position: relative;
+                width: min(360px, calc(100% - 1.5rem));
+                background: rgba(220, 210, 160, 0.82);
+                backdrop-filter: blur(14px);
+                -webkit-backdrop-filter: blur(14px);
+                border-radius: 18px;
+                padding: 1.75rem 1.75rem 1.5rem;
+                box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+                border: 1px solid rgba(255,255,255,0.35);
+            }
+
+            .login-close-icon {
+                position: absolute; top: 0.85rem; right: 0.85rem;
+                width: 28px; height: 28px; border-radius: 50%;
+                border: none; background: rgba(0,0,0,0.12);
+                cursor: pointer; font-size: 1.1rem; font-weight: 700;
+                display: grid; place-items: center;
+                color: #333; transition: background 200ms;
+            }
+            .login-close-icon:hover { background: rgba(0,0,0,0.22); }
+
+            .lm-title {
+                text-align: center;
+                font-family: "Fraunces", serif;
+                font-size: 1.6rem; font-weight: 700;
+                margin: 0 0 1.1rem; color: #1a1a1a;
+            }
+
+            .lm-group { margin-bottom: 0.75rem; }
+
+            .lm-label {
+                display: block; font-size: 0.8rem;
+                font-weight: 600; color: #222;
+                margin-bottom: 0.3rem;
+            }
+
+            .lm-input {
+                width: 100%; padding: 0.65rem 0.9rem;
+                border-radius: 8px;
+                border: 1.5px solid rgba(43,143,144,0.2);
+                background: rgba(200,210,170,0.55);
+                font: inherit; font-size: 0.9rem; color: #1a1a1a;
+                transition: border-color 200ms, background 200ms;
+            }
+            .lm-input:focus {
+                outline: none;
+                border-color: #2b8f90;
+                background: rgba(220,230,185,0.7);
+            }
+            .lm-input::placeholder { color: rgba(30,30,30,0.45); }
+
+            .lm-agree-row {
+                display: flex; align-items: flex-start; gap: 0.5rem;
+                margin: 0.6rem 0 0.9rem;
+            }
+
+            .lm-submit-btn {
+                width: 100%; padding: 0.75rem;
+                background: rgba(180,200,150,0.75);
+                border: 1.5px solid rgba(100,140,80,0.4);
+                border-radius: 8px;
+                font: inherit; font-size: 0.95rem; font-weight: 700;
+                color: #1a1a1a; cursor: pointer;
+                transition: background 200ms, transform 180ms;
+            }
+            .lm-submit-btn:hover { background: rgba(160,190,120,0.85); transform: translateY(-1px); }
+
+            .lm-or-row {
+                display: grid; grid-template-columns: 1fr auto 1fr;
+                align-items: center; gap: 0.6rem;
+                margin: 0.85rem 0;
+            }
+            .lm-or-row span:first-child,
+            .lm-or-row span:last-child {
+                height: 1px; background: rgba(0,0,0,0.2);
+            }
+            .lm-or-text { font-size: 0.82rem; color: #444; font-weight: 600; }
+
+            .lm-google-btn {
+                width: 100%; padding: 0.7rem;
+                background: rgba(200,210,165,0.7);
+                border: 1.5px solid rgba(100,130,80,0.35);
+                border-radius: 8px;
+                font: inherit; font-size: 0.9rem; font-weight: 600;
+                color: #1a1a1a; cursor: pointer;
+                display: flex; align-items: center; justify-content: center; gap: 0.6rem;
+                transition: background 200ms;
+            }
+            .lm-google-btn:hover { background: rgba(185,200,145,0.85); }
+
+            .login-feedback {
+                border-radius: 8px; padding: 0.65rem 0.85rem;
+                font-size: 0.85rem; margin-bottom: 0.75rem;
+            }
+            .login-feedback.error { background: rgba(220,80,80,0.15); color: #7d2b2b; border: 1px solid rgba(220,80,80,0.25); }
+            .login-feedback.success { background: rgba(80,180,100,0.15); color: #1f6b38; border: 1px solid rgba(80,180,100,0.25); }
+            .login-security-note { background: rgba(43,143,144,0.1); border-radius: 8px; padding: 0.65rem 0.85rem; color: #2b4a4a; border: 1px solid rgba(43,143,144,0.2); }
+            .login-remember { display:flex; align-items:center; gap:0.5rem; margin-top:0.35rem; font-size:0.85rem; }
+            .login-signup-link { text-align:center; font-size:0.82rem; color:#555; margin-top:0.6rem; }
+        </style>
 
         <!-- Admin Login Modal -->
         <div class="admin-modal-overlay" id="adminModal">
