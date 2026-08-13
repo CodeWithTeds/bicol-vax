@@ -182,6 +182,11 @@
             overflow-y: auto;
         }
 
+        /* Terms/Privacy modal must sit above the login & registration modals */
+        #termsModal {
+            z-index: 1001;
+        }
+
         /* Enhanced modal visuals and transitions */
         .modal-overlay {
             transition: opacity 220ms ease, visibility 220ms ease;
@@ -221,6 +226,56 @@
             .modal-button, .login-button, .admin-button { min-height: 44px; font-size: 0.92rem; }
             #registerModal .modal-header h2 { font-size: 1.5rem !important; }
             #registerModal .modal-header p { font-size: 0.88rem !important; }
+        }
+
+        @media (max-width: 640px) {
+            .form-group input,
+            .form-group select {
+                padding: 0.85rem 0.9rem;
+                font-size: 0.95rem;
+                border-radius: 12px;
+            }
+
+            #registerModal .modal-content {
+                max-height: 94vh;
+                border-radius: 16px;
+            }
+
+            #registerModal .modal-header {
+                padding: 1.1rem 1.25rem !important;
+                margin: -1.5rem -1.25rem 1.25rem -1.25rem !important;
+            }
+
+            #registerModal .modal-buttons {
+                flex-direction: column;
+            }
+
+            #registerModal .modal-button {
+                flex: none;
+                width: 100%;
+                min-height: 48px;
+            }
+
+            #register-form {
+                padding: 1.25rem 0.25rem !important;
+            }
+
+            #register-form .form-group.row {
+                gap: 0.9rem;
+            }
+
+            #registerModal .modal-content .close-icon {
+                top: 0.7rem;
+                right: 0.7rem;
+            }
+        }
+
+        @media (max-width: 400px) {
+            .modal-content { padding: 1.25rem; }
+            #registerModal .modal-header h2 { font-size: 1.25rem !important; }
+            .form-group label { font-size: 0.9rem; }
+            .form-group input,
+            .form-group select { padding: 0.8rem 0.85rem; font-size: 0.92rem; }
         }
 
         .login-modal-overlay.active,
@@ -724,7 +779,7 @@
     <section class="hero">
         <h1>Automated Vaccination<br>Scheduling &amp; Reminder</h1>
         <p>Book your Anti-Rabies vaccination appointment online. Get Automated<br>reminder for your complete vaccination schedule.</p>
-
+        <button class="signup-btn" onclick="openRegisterModal()" style="margin-top:1rem;">SIGN UP NOW</button>
     </section>
 
     <!-- PHOTO GALLERY -->
@@ -775,39 +830,6 @@
         </div>
     </div>
 
-    <!-- TERMS, REMINDERS, PRIVACY SECTION -->
-    <div class="terms-section">
-        <p class="terms-intro">Please review all information carefully before proceeding with your appointment request. Ensure that all details provided are complete and accurate.</p>
-
-        <div class="terms-reminders">
-            <p class="reminders-title">REMINDERS:</p>
-            <p>• Please provide a valid and active email address to receive appointment confirmations and vaccination reminders.</p>
-            <p>• Appointment requests are subject to approval by BicolVax Clinic.</p>
-            <p>• Patients are advised to arrive on time for their scheduled appointments.</p>
-        </div>
-
-        <h2 class="terms-heading">TERMS AND CONDITIONS</h2>
-        <p>This appointment and vaccination scheduling system operates on a first-come, first-served basis, subject to schedule availability and clinic approval. Users are responsible for providing accurate and complete information. Incorrect, incomplete, or misleading information may result in the cancellation or rejection of the appointment request. Patient information collected through the system will be used solely for appointment scheduling, vaccination monitoring, and clinic record management purposes. BicolVax Clinic reserves the right to approve, reschedule, or decline appointment requests based on schedule availability and operational requirements.</p>
-        <p>The clinic shall not be held responsible for missed notifications caused by incorrect email addresses, internet connectivity issues, or other technical problems beyond its control. By proceeding with this application, I acknowledge that I have read and understood the Terms and Conditions of the BicolVax Online Appointment and Vaccination Scheduling System. I consent to the collection, processing, and use of my information for clinic-related services in accordance with applicable data privacy regulations.</p>
-
-        <h2 class="terms-heading">PRIVACY POLICY</h2>
-        <p>BicolVax Clinic is committed to protecting your personal information and maintaining your privacy.<br>
-        The information you provide through this system, including your name, contact details, appointment information, and vaccination records, will be collected and used solely for appointment scheduling, vaccination monitoring, patient record management, and other clinic-related services.<br>
-        Your personal information will be kept confidential and will only be accessed by authorized clinic personnel when necessary to provide healthcare services.</p>
-        <p>BicolVax Clinic will take reasonable measures to protect your information from unauthorized access, disclosure, alteration, or misuse. The clinic will not sell, share, or disclose your personal information to third parties unless required by law or authorized by the patient. By using this system, you consent to the collection, processing, and storage of your personal information for legitimate healthcare and administrative purposes in accordance with the Data Privacy Act of 2012.</p>
-
-        <hr class="terms-divider">
-
-        <div class="agree-row">
-            <input type="checkbox" id="agreeCheck">
-            <label for="agreeCheck">I AGREE AND CONTINUE</label>
-        </div>
-
-        <div style="text-align:center; margin-top:1.5rem;">
-            <button class="signup-btn" id="signupNowBtn" onclick="handleSignupNow()">SIGN UP NOW</button>
-        </div>
-    </div>
-
     <!-- HOW IT WORKS STEPS -->
     <div class="steps-section">
         <div class="steps-grid">
@@ -837,45 +859,6 @@
     </footer>
 
     <style>
-        /* TERMS SECTION */
-        .terms-section {
-            max-width: 900px;
-            margin: 0 auto 0;
-            padding: 2rem 2.5rem 1.5rem;
-            border-top: 1px solid rgba(0,0,0,0.12);
-            border-bottom: 1px solid rgba(0,0,0,0.12);
-            font-size: 0.88rem;
-            line-height: 1.65;
-            color: #222;
-        }
-
-        .terms-intro { text-align: center; margin-bottom: 1rem; }
-
-        .terms-reminders { margin-bottom: 1rem; }
-
-        .reminders-title {
-            color: #c0392b;
-            font-weight: 700;
-            font-size: 0.95rem;
-            text-align: center;
-            margin-bottom: 0.4rem;
-        }
-
-        .terms-heading {
-            font-size: 0.95rem;
-            font-weight: 800;
-            text-align: center;
-            letter-spacing: 0.5px;
-            margin: 1.25rem 0 0.6rem;
-            color: #1a1a1a;
-        }
-
-        .terms-divider {
-            border: none;
-            border-top: 1px solid rgba(0,0,0,0.15);
-            margin: 1.25rem 0 1rem;
-        }
-
         .agree-row {
             display: flex;
             align-items: center;
@@ -952,32 +935,8 @@
 
         @media (max-width: 640px) {
             .steps-grid { grid-template-columns: 1fr; }
-            .terms-section { padding: 1.5rem 1.25rem; }
         }
     </style>
-
-    <script>
-        function handleSignupNow() {
-            const agreed = document.getElementById('agreeCheck').checked;
-            if (!agreed) {
-                alert('Please check "I AGREE AND CONTINUE" before signing up.');
-                return;
-            }
-            openRegisterModal();
-        }
-
-        // Disable signup button until checkbox is checked
-        document.addEventListener('DOMContentLoaded', function() {
-            const btn = document.getElementById('signupNowBtn');
-            const check = document.getElementById('agreeCheck');
-            if (btn && check) {
-                btn.disabled = true;
-                check.addEventListener('change', function() {
-                    btn.disabled = !this.checked;
-                });
-            }
-        });
-    </script>
 
         <!-- Login Modal -->
         <!-- ═══ LOGIN MODAL ═══ -->
@@ -1014,7 +973,7 @@
 
                         <div class="lm-agree-row">
                             <input type="checkbox" id="loginAgree" style="width:16px;height:16px;accent-color:#2b8f90;cursor:pointer;">
-                            <label for="loginAgree" style="cursor:pointer; font-size:0.82rem; color:#333;">Your data will be store in a centralized database. I haved read and agree to the terms, condition and privacy policy.</label>
+                            <label for="loginAgree" style="cursor:pointer; font-size:0.82rem; color:#333;">Your data will be store in a centralized database. I haved read and agree to the <a href="#" onclick="openTermsModal('terms'); return false;" style="color:#2b8f90; text-decoration:underline; font-weight:600;">terms</a>, condition and <a href="#" onclick="openTermsModal('privacy'); return false;" style="color:#2b8f90; text-decoration:underline; font-weight:600;">privacy policy</a>.</label>
                         </div>
                     </div>
 
@@ -1223,6 +1182,38 @@
         </div>
 
         <!-- Registration Modal -->
+        <!-- TERMS & PRIVACY MODAL -->
+        <div class="modal-overlay" id="termsModal" aria-hidden="true">
+            <div class="modal-content" role="dialog" aria-modal="true" aria-labelledby="termsModalTitle" tabindex="-1" style="max-width:720px; display:flex; flex-direction:column; padding:0; overflow:hidden;">
+                <button class="close-icon" onclick="closeTermsModal()" aria-label="Close">×</button>
+                <div class="modal-header" style="padding:1.5rem 2rem; border-bottom:1px solid #eee;">
+                    <h2 id="termsModalTitle" style="margin:0; font-size:1.35rem;">Terms &amp; Privacy</h2>
+                    <p style="margin:0.35rem 0 0; font-size:0.88rem; color:#666;">BicolVax Online Appointment and Vaccination Scheduling System</p>
+                </div>
+                <div style="display:flex; gap:0.5rem; padding:1rem 2rem; border-bottom:1px solid #eee;">
+                    <button type="button" id="termsTabBtn" class="modal-button" onclick="showTermsTab('terms')" style="padding:0.45rem 1.1rem; font-size:0.82rem;">Terms and Conditions</button>
+                    <button type="button" id="privacyTabBtn" class="modal-button close" onclick="showTermsTab('privacy')" style="padding:0.45rem 1.1rem; font-size:0.82rem;">Privacy Policy</button>
+                </div>
+                <div style="overflow-y:auto; padding:1.5rem 2rem; flex:1; font-size:0.88rem; line-height:1.65; color:#222;">
+                    <div id="termsTab">
+                        <h3 style="margin:0 0 0.75rem; color:#2b8f90;">TERMS AND CONDITIONS</h3>
+                        <p>This appointment and vaccination scheduling system operates on a first-come, first-served basis, subject to schedule availability and clinic approval. Users are responsible for providing accurate and complete information. Incorrect, incomplete, or misleading information may result in the cancellation or rejection of the appointment request. Patient information collected through the system will be used solely for appointment scheduling, vaccination monitoring, and clinic record management purposes. BicolVax Clinic reserves the right to approve, reschedule, or decline appointment requests based on schedule availability and operational requirements.</p>
+                        <p>The clinic shall not be held responsible for missed notifications caused by incorrect email addresses, internet connectivity issues, or other technical problems beyond its control. By proceeding with this application, I acknowledge that I have read and understood the Terms and Conditions of the BicolVax Online Appointment and Vaccination Scheduling System. I consent to the collection, processing, and use of my information for clinic-related services in accordance with applicable data privacy regulations.</p>
+                    </div>
+                    <div id="privacyTab" style="display:none;">
+                        <h3 style="margin:0 0 0.75rem; color:#2b8f90;">PRIVACY POLICY</h3>
+                        <p>BicolVax Clinic is committed to protecting your personal information and maintaining your privacy.<br>
+                        The information you provide through this system, including your name, contact details, appointment information, and vaccination records, will be collected and used solely for appointment scheduling, vaccination monitoring, patient record management, and other clinic-related services.<br>
+                        Your personal information will be kept confidential and will only be accessed by authorized clinic personnel when necessary to provide healthcare services.</p>
+                        <p>BicolVax Clinic will take reasonable measures to protect your information from unauthorized access, disclosure, alteration, or misuse. The clinic will not sell, share, or disclose your personal information to third parties unless required by law or authorized by the patient. By using this system, you consent to the collection, processing, and storage of your personal information for legitimate healthcare and administrative purposes in accordance with the Data Privacy Act of 2012.</p>
+                    </div>
+                </div>
+                <div style="padding:1rem 2rem; border-top:1px solid #eee; text-align:right;">
+                    <button type="button" class="modal-button close" onclick="closeTermsModal()">Close</button>
+                </div>
+            </div>
+        </div>
+
         <div class="modal-overlay" id="registerModal" aria-hidden="true">
             <div class="modal-content" role="dialog" aria-modal="true" aria-labelledby="registerModalTitle" aria-describedby="registerModalDesc" tabindex="-1">
                 <button class="close-icon" onclick="closeRegisterModal()" aria-label="Close registration form">×</button>
@@ -1304,6 +1295,16 @@
                                     <input type="password" id="password_confirmation" name="password_confirmation" placeholder="Confirm password" required style="width:100%; padding-right:44px;">
                                     <button type="button" id="togglePasswordConfirm" aria-pressed="false" aria-label="Show confirm password" style="position:absolute; right:8px; top:50%; transform:translateY(-50%); border:none; background:transparent; cursor:pointer; font-weight:700; color:#374151;">Show</button>
                                 </div>
+                            </div>
+
+                            <div class="agree-row" style="margin:0.25rem 0 0; padding:0;">
+                                <input type="checkbox" id="registerAgree" required style="width:16px;height:16px;accent-color:#2b8f90;cursor:pointer;">
+                                <label for="registerAgree" style="cursor:pointer; font-size:0.82rem; color:#333; line-height:1.5;">
+                                    I have read and agree to the
+                                    <a href="#" onclick="openTermsModal('terms'); return false;" style="color:#2b8f90; text-decoration:underline; font-weight:600;">Terms and Conditions</a>
+                                    and
+                                    <a href="#" onclick="openTermsModal('privacy'); return false;" style="color:#2b8f90; text-decoration:underline; font-weight:600;">Privacy Policy</a>.
+                                </label>
                             </div>
 
                             <div class="modal-login-link">
@@ -1954,6 +1955,37 @@
                 try { if (_lastFocusedElement) _lastFocusedElement.focus(); } catch (e) {}
             }
 
+            function openTermsModal(tab) {
+                const modal = document.getElementById('termsModal');
+                if (!modal) return;
+                showTermsTab(tab || 'terms');
+                modal.classList.add('active');
+                modal.setAttribute('aria-hidden', 'false');
+                document.body.style.overflow = 'hidden';
+                const title = document.getElementById('termsModalTitle');
+                if (title) title.textContent = (tab === 'privacy') ? 'Privacy Policy' : 'Terms and Conditions';
+            }
+
+            function closeTermsModal() {
+                const modal = document.getElementById('termsModal');
+                if (!modal) return;
+                modal.classList.remove('active');
+                modal.setAttribute('aria-hidden', 'true');
+                document.body.style.overflow = 'auto';
+            }
+
+            function showTermsTab(tab) {
+                const isTerms = tab === 'terms';
+                document.getElementById('termsTab').style.display = isTerms ? '' : 'none';
+                document.getElementById('privacyTab').style.display = isTerms ? 'none' : '';
+                const termsBtn = document.getElementById('termsTabBtn');
+                const privacyBtn = document.getElementById('privacyTabBtn');
+                if (termsBtn && privacyBtn) {
+                    termsBtn.classList.toggle('close', !isTerms);
+                    privacyBtn.classList.toggle('close', isTerms);
+                }
+            }
+
             // Close modal when clicking outside the content
             document.getElementById('registerModal').addEventListener('click', function(event) {
                 if (event.target === this) {
@@ -1967,6 +1999,14 @@
                     closeRegisterModal();
                     closeLoginModal();
                     closeAdminModal();
+                    closeTermsModal();
+                }
+            });
+
+            // Close terms modal when clicking outside the content
+            document.getElementById('termsModal').addEventListener('click', function(event) {
+                if (event.target === this) {
+                    closeTermsModal();
                 }
             });
 
