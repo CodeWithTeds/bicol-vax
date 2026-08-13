@@ -433,6 +433,21 @@ class UserController extends Controller
             $request->session()->regenerate();
             $request->session()->forget(['user_login_otp_user', 'user_login_otp_code_hash', 'user_login_otp_expires_at']);
 
+            if ($user->is_admin || $user->is_super_admin) {
+                $request->session()->put('admin_otp_verified', true);
+                $request->session()->put('admin_branch_id', $user->branch_id);
+
+                $redirect = $user->is_super_admin
+                    ? route('superadmin.dashboard')
+                    : route('admin.dashboard');
+
+                if ($request->expectsJson()) {
+                    return response()->json(['redirect' => $redirect]);
+                }
+
+                return redirect()->intended($redirect);
+            }
+
             if ($request->expectsJson()) {
                 return response()->json(['redirect' => route('user.dashboard')]);
             }
@@ -455,9 +470,13 @@ class UserController extends Controller
             return back()->withErrors(['email' => 'The provided credentials do not match our records.']);
         }
 
+        // Admin/super-admin accounts (created by super admin) are not subject to
+        // online registration approval, so skip the patient approval check for them.
+        $isStaff = (bool) ($user->is_admin || $user->is_super_admin);
+
         // Deny login if the user has no approved online registration yet
         $hasApproved = $user->patients()->where('status', 'approved')->exists() ?? false;
-        if (! $hasApproved) {
+        if (! $hasApproved && ! $isStaff) {
             if ($request->expectsJson()) {
                 return response()->json(['message' => 'Your account is pending admin approval. You cannot log in yet.'], 403);
             }

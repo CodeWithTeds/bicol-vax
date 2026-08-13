@@ -132,6 +132,7 @@ class AdminController extends Controller
         $pendingAppointments  = $this->appointmentQuery()->where(fn ($q) => $q->where('status', 'not_approved')->orWhereNull('status'))->count();
         $approvedAppointments = $this->appointmentQuery()->where('status', 'approved')->count();
         $completedAppointments = $this->appointmentQuery()->whereIn('status', ['completed', 'done'])->count();
+        $cancelledAppointments = $this->appointmentQuery()->where('status', 'cancelled')->count();
         $appointmentsToday    = $this->appointmentQuery()->whereDate('appointment_date', today())->count();
 
         $recentPatients       = $this->patientQuery()->latest()->take(5)->get();
@@ -141,7 +142,7 @@ class AdminController extends Controller
             'totalPatients', 'patientsToday', 'pendingPatients', 'approvedPatients',
             'severeCases', 'categoryICases', 'categoryIICases', 'categoryIIICases',
             'totalAppointments', 'pendingAppointments', 'approvedAppointments',
-            'completedAppointments', 'appointmentsToday',
+            'completedAppointments', 'cancelledAppointments', 'appointmentsToday',
             'recentPatients', 'recentAppointments'
         ));
     }

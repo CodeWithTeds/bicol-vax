@@ -249,9 +249,9 @@
         </div>
 
         <div class="dash-stat-card accent-red">
-            <div class="stat-label">Severe Cases</div>
-            <div class="stat-number">{{ $severeCases }}</div>
-            <div class="stat-desc">Patients tagged as severe</div>
+            <div class="stat-label">Cancellation Report</div>
+            <div class="stat-number">{{ $cancelledAppointments }}</div>
+            <div class="stat-desc">Appointments that were cancelled</div>
         </div>
     </div>
 
