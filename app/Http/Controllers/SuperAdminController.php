@@ -6,6 +6,7 @@ use App\Models\Appointment;
 use App\Models\Branch;
 use App\Models\Patient;
 use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -267,6 +268,74 @@ class SuperAdminController extends Controller
             ];
         });
 
-        return view('superadmin.reports', compact('branches', 'allPatients', 'branchReports'));
+        $monthlyReports = $this->monthlyPatientStatusReport();
+
+        return view('superadmin.reports', compact('branches', 'allPatients', 'branchReports', 'monthlyReports'));
+    }
+
+    /**
+     * Per-month patient status report.
+     *
+     * Statuses are derived from existing data, grouped by registration month:
+     *  - Total      : cumulative patients registered up to the end of the month
+     *  - Registered : patients registered during the month
+     *  - Complete   : status is approved/completed/done
+     *  - Ongoing    : status is not_approved/pending/empty (still in treatment)
+     *  - Cancelled  : status is cancelled
+     *  - Missing    : has an approved appointment whose date already passed
+     */
+    private function monthlyPatientStatusReport()
+    {
+        $months = collect();
+        $earliest = Patient::query()->min('created_at');
+
+        if ($earliest) {
+            $cursor = Carbon::parse($earliest)->startOfMonth();
+            $last = Carbon::now()->startOfMonth();
+
+            while ($cursor->lte($last)) {
+                $months->push($cursor->copy());
+                $cursor->addMonth();
+            }
+        }
+
+        $missedPatientIds = Appointment::query()
+            ->where('status', 'approved')
+            ->whereDate('appointment_date', '<', Carbon::today())
+            ->pluck('patient_id')
+            ->filter()
+            ->values()
+            ->all();
+
+        $cumulative = 0;
+
+        return $months->map(function (Carbon $month) use (&$cumulative, $missedPatientIds) {
+            $start = $month->copy()->startOfMonth();
+            $end = $month->copy()->endOfMonth();
+
+            $patients = Patient::whereBetween('created_at', [$start, $end])
+                ->get(['id', 'status']);
+
+            $registered = $patients->count();
+            $cumulative += $registered;
+
+            $complete = $patients->filter(fn ($p) => in_array($p->status, ['approved', 'completed', 'done'], true))->count();
+            $ongoing = $patients->filter(fn ($p) => ! in_array($p->status ?? '', ['approved', 'completed', 'done', 'cancelled'], true))->count();
+            $cancelled = $patients->where('status', 'cancelled')->count();
+            $missing = $patients->filter(fn ($p) => in_array($p->id, $missedPatientIds, true))->count();
+
+            return [
+                'label'      => $month->format('F Y'),
+                'key'        => $month->format('Y-m'),
+                'year'       => $month->format('Y'),
+                'quarter'    => $month->quarter,
+                'total'      => $cumulative,
+                'registered' => $registered,
+                'complete'   => $complete,
+                'ongoing'    => $ongoing,
+                'cancelled'  => $cancelled,
+                'missing'    => $missing,
+            ];
+        })->values();
     }
 }
