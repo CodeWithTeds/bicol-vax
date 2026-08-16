@@ -30,17 +30,30 @@
         tbody tr:nth-child(even) { background: #fbfdfd; }
 
         /* Action buttons */
-        .btn-view, .btn-edit, .btn-delete { padding: 0.4rem 0.7rem; border-radius: 6px; font-size: 0.85rem; text-decoration: none; display: inline-block; }
-        .btn-view { background: #2b8f90; color: #fff; }
-        .btn-edit { background: #ff9800; color: #fff; }
-        .btn-delete { background: #d9534f; color: #fff; }
+        .action-buttons .icon-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 34px;
+            height: 34px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            line-height: 1;
+            text-decoration: none;
+            transition: transform 160ms ease, opacity 160ms ease, box-shadow 160ms ease;
+        }
+        .action-buttons .icon-btn:hover { transform: translateY(-1px); opacity: 0.88; box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); }
+        .action-buttons .icon-btn svg { display: block; }
+        .icon-view { background: #e0f4f4; color: #2b8f90; }
+        .icon-edit { background: #fff3e0; color: #e8890c; }
+        .icon-approve { background: #d4edda; color: #1f8a4c; }
 
         /* Status badges */
         .badge-approved { background: #d4edda; color: #155724; padding: 0.25rem 0.6rem; border-radius: 12px; font-size: 0.8rem; font-weight: 600; }
         .badge-not_approved { background: #fff3cd; color: #856404; padding: 0.25rem 0.6rem; border-radius: 12px; font-size: 0.8rem; font-weight: 600; }
         .badge-rejected { background: #f8d7da; color: #721c24; padding: 0.25rem 0.6rem; border-radius: 12px; font-size: 0.8rem; font-weight: 600; }
-
-        .btn-approve { padding: 0.4rem 0.7rem; border-radius: 6px; font-size: 0.85rem; background: #50c878; color: #fff; border: none; cursor: pointer; }
 
         /* Status filter */
         .status-filter {
@@ -235,29 +248,7 @@
         .action-buttons {
             display: flex;
             gap: 0.5rem;
-        }
-
-        .action-buttons button {
-            padding: 0.4rem 0.8rem;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 0.85rem;
-        }
-
-        .btn-edit {
-            background-color: #2b8f90;
-            color: white;
-        }
-
-        .btn-delete {
-            background-color: #d9534f;
-            color: white;
-        }
-
-        .btn-view {
-            background-color: #f0ad4e;
-            color: white;
+            align-items: center;
         }
 
         .details-grid {
@@ -588,7 +579,9 @@
                                 <div class="action-buttons">
                                     <button
                                         type="button"
-                                        class="btn-view"
+                                        class="btn-view icon-btn icon-view"
+                                        title="View patient details"
+                                        aria-label="View patient details"
                                         data-full-name="{{ e($patient->full_name) }}"
                                         data-card-no="{{ e($patient->card_no) }}"
                                         data-case-no="{{ e($patient->case_no) }}"
@@ -617,26 +610,28 @@
                                         data-created-at="{{ e(optional($patient->created_at)->format('Y-m-d H:i')) }}"
                                         onclick='openViewPatientModalFromButton(this)'
                                     >
-                                        View
+                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
                                     </button>
-                                    @if ((($patient->source ?? null) === 'web') || str_starts_with($patient->card_no, 'WEB-'))
-                                        <button class="btn-approve" type="button" onclick="togglePatientStatus({{ $patient->id }}, 'approved', this)">Approve</button>
-                                        <button class="btn-delete" type="button" onclick="togglePatientStatus({{ $patient->id }}, 'not_approved', this)">Set Not Approved</button>
-                                        <button class="btn-delete" type="button" onclick="deletePatient({{ $patient->id }}, this)">Delete</button>
-                                    @else
+                                    <button
+                                        type="button"
+                                        class="btn-edit icon-btn icon-edit"
+                                        title="Edit patient information and treatment"
+                                        aria-label="Edit patient information and treatment"
+                                        data-update-url="{{ route('admin.patients.update', $patient) }}"
+                                        onclick='openEditPatientModalFromButton(this)'
+                                    >
+                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></svg>
+                                    </button>
+                                    @if ($patient->status !== 'approved')
                                         <button
                                             type="button"
-                                            class="btn-edit"
-                                            data-update-url="{{ route('admin.patients.update', $patient) }}"
-                                            onclick='openEditPatientModalFromButton(this)'
+                                            class="icon-btn icon-approve"
+                                            title="Approve patient"
+                                            aria-label="Approve patient"
+                                            onclick="togglePatientStatus({{ $patient->id }}, 'approved', this)"
                                         >
-                                            Edit
+                                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
                                         </button>
-                                        <form method="POST" action="{{ route('admin.patients.destroy', $patient) }}" data-confirm="true" data-confirm-message="Are you sure you want to delete this patient?" style="display: inline;">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit" class="btn-delete">Delete</button>
-                                        </form>
                                     @endif
                                 </div>
                             </td>
@@ -682,7 +677,9 @@
                                 <div class="action-buttons">
                                     <button
                                         type="button"
-                                        class="btn-view"
+                                        class="btn-view icon-btn icon-view"
+                                        title="View patient details"
+                                        aria-label="View patient details"
                                         data-full-name="{{ e($patient->full_name) }}"
                                         data-card-no="{{ e($patient->card_no) }}"
                                         data-case-no="{{ e($patient->case_no) }}"
@@ -711,21 +708,29 @@
                                         data-created-at="{{ e(optional($patient->created_at)->format('Y-m-d H:i')) }}"
                                         onclick='openViewPatientModalFromButton(this)'
                                     >
-                                        View
+                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
                                     </button>
                                     <button
                                         type="button"
-                                        class="btn-edit"
+                                        class="btn-edit icon-btn icon-edit"
+                                        title="Edit patient information and treatment"
+                                        aria-label="Edit patient information and treatment"
                                         data-update-url="{{ route('admin.patients.update', $patient) }}"
                                         onclick='openEditPatientModalFromButton(this)'
                                     >
-                                        Edit
+                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></svg>
                                     </button>
-                                    <form method="POST" action="{{ route('admin.patients.destroy', $patient) }}" data-confirm="true" data-confirm-message="Are you sure you want to delete this patient?" style="display: inline;">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="submit" class="btn-delete">Delete</button>
-                                    </form>
+                                    @if ($patient->status !== 'approved')
+                                        <button
+                                            type="button"
+                                            class="icon-btn icon-approve"
+                                            title="Approve patient"
+                                            aria-label="Approve patient"
+                                            onclick="togglePatientStatus({{ $patient->id }}, 'approved', this)"
+                                        >
+                                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                                        </button>
+                                    @endif
                                 </div>
                             </td>
                         </tr>
@@ -762,10 +767,51 @@
                             </td>
                             <td>
                                 <div class="action-buttons">
-                                    <button class="btn-view" type="button" onclick="openViewPatientModalFromRow({{ $apt->id }})">View</button>
-                                    <button class="btn-approve" type="button" onclick="togglePatientStatus({{ $apt->id }}, 'approved', this)">Approve</button>
-                                    <button class="btn-delete" type="button" onclick="togglePatientStatus({{ $apt->id }}, 'not_approved', this)">Set Not Approved</button>
-                                    <button class="btn-delete" type="button" onclick="deletePatient({{ $apt->id }}, this)">Delete</button>
+                                    <button
+                                        type="button"
+                                        class="btn-view icon-btn icon-view"
+                                        title="View patient details"
+                                        aria-label="View patient details"
+                                        data-full-name="{{ e($apt->full_name) }}"
+                                        data-card-no="{{ e($apt->card_no) }}"
+                                        data-case-no="{{ e($apt->case_no) }}"
+                                        data-contact="{{ e($apt->contact) }}"
+                                        data-age="{{ e($apt->age) }}"
+                                        data-email="{{ e($apt->email) }}"
+                                        data-gender="{{ e($apt->gender) }}"
+                                        data-address="{{ e($apt->address) }}"
+                                        data-weight="{{ e($apt->weight) }}"
+                                        data-cat-category="{{ e($apt->cat_category) }}"
+                                        data-treatment-required="{{ e(is_array($apt->treatment_required) ? implode(',', $apt->treatment_required) : '') }}"
+                                        data-bite-type="{{ e($apt->bite_type) }}"
+                                        data-place-of-bite="{{ e($apt->place_of_bite) }}"
+                                        data-source="{{ e($apt->source) }}"
+                                        data-severity="{{ e($apt->severity) }}"
+                                        data-generic-name="{{ e($apt->generic_name) }}"
+                                        data-route="{{ e($apt->route) }}"
+                                        data-brand-name="{{ e($apt->brand_name) }}"
+                                        data-dosage="{{ e($apt->dosage) }}"
+                                        data-anti-rabies-dose="{{ e($apt->anti_rabies_dose) }}"
+                                        data-anti-rabies-date="{{ e(optional($apt->anti_rabies_date)->format('Y-m-d')) }}"
+                                        data-tetanus-status="{{ e($apt->tetanus_status) }}"
+                                        data-tetanus-dose="{{ e($apt->tetanus_dose) }}"
+                                        data-tetanus-date="{{ e(optional($apt->tetanus_date)->format('Y-m-d')) }}"
+                                        data-rabies-immunoglobulin="{{ e($apt->rabies_immunoglobulin) }}"
+                                        data-created-at="{{ e(optional($apt->created_at)->format('Y-m-d H:i')) }}"
+                                        onclick='openViewPatientModalFromButton(this)'
+                                    >
+                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                                    </button>
+                                    <button
+                                        type="button"
+                                        class="btn-edit icon-btn icon-edit"
+                                        title="Edit patient information and treatment"
+                                        aria-label="Edit patient information and treatment"
+                                        data-update-url="{{ route('admin.patients.update', $apt) }}"
+                                        onclick='openEditPatientModalFromButton(this)'
+                                    >
+                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></svg>
+                                    </button>
                                 </div>
                             </td>
                         </tr>
@@ -1510,48 +1556,27 @@
                 const data = await res.json().catch(() => ({}));
                 if (!res.ok) throw new Error(data.message || 'Failed to update status');
 
-                // update status cell
+                const row = btn.closest('tr');
+                if (row) {
+                    row.dataset.status = status;
+                    const badge = row.querySelector('[class^="badge-"]');
+                    if (badge) {
+                        badge.className = 'badge-' + status;
+                        badge.textContent = status === 'approved' ? 'Approved' : 'Pending';
+                    }
+                    btn.remove();
+                }
+
                 const cell = document.getElementById('patient-status-' + id);
                 if (cell) {
                     const badgeClass = status === 'approved' ? 'badge-approved' : 'badge-not_approved';
                     const badgeText = status === 'approved' ? 'Approved' : 'Pending';
                     cell.innerHTML = '<span class="' + badgeClass + '">' + badgeText + '</span>';
                 }
+
                 showToast(data.message || 'Status updated', 'success');
             } catch (err) {
                 showToast(err.message || 'Failed to update', 'error');
-            } finally {
-                btn.disabled = false;
-            }
-        }
-
-        async function deletePatient(id, btn) {
-            const ok = await showConfirm('Are you sure you want to delete this registration? This cannot be undone.', 'Delete registration');
-            if (!ok) return;
-
-            btn.disabled = true;
-            try {
-                const res = await fetch("{{ url('/admin/patients') }}/" + id, {
-                    method: 'DELETE',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': adminCsrf,
-                        'Accept': 'application/json'
-                    }
-                });
-
-                const data = await res.json().catch(() => ({}));
-                if (!res.ok) throw new Error(data.message || 'Failed to delete');
-
-                // remove row from table
-                const row = btn.closest('tr');
-                if (row) row.remove();
-
-                showToast(data.message || 'Registration deleted', 'success');
-            } catch (err) {
-                showToast(err.message || 'Failed to delete', 'error');
-            } finally {
-                btn.disabled = false;
             }
         }
     </script>

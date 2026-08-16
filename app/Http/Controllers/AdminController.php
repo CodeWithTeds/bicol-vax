@@ -402,6 +402,7 @@ class AdminController extends Controller
                 'appointment_date_raw' => null,
                 'status'           => $patient->status ?? null,
                 'registered'       => optional($patient->created_at)->format('Y-m-d H:i:s'),
+                'created_at'       => optional($patient->created_at)->format('Y-m-d H:i:s'),
             ];
         })->values();
 

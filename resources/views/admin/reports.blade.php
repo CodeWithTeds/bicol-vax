@@ -548,31 +548,31 @@
         <div class="chart-card">
             <h3>📈 Monthly Appointments</h3>
             <div class="bar-chart">
-                <div style="flex: 1; text-align: center; position: relative; margin: 0 8px;">
+                <div style="flex: 1; text-align: center; position: relative; margin: 0 8px; display: flex; align-items: flex-end; justify-content: center; height: 100%;">
                     <div class="bar" style="height: 0%; margin: 0 auto;"><span class="bar-value"></span></div>
                     <span class="bar-label">Jan</span>
                 </div>
-                <div style="flex: 1; text-align: center; position: relative; margin: 0 8px;">
+                <div style="flex: 1; text-align: center; position: relative; margin: 0 8px; display: flex; align-items: flex-end; justify-content: center; height: 100%;">
                     <div class="bar" style="height: 0%; margin: 0 auto;"><span class="bar-value"></span></div>
                     <span class="bar-label">Feb</span>
                 </div>
-                <div style="flex: 1; text-align: center; position: relative; margin: 0 8px;">
+                <div style="flex: 1; text-align: center; position: relative; margin: 0 8px; display: flex; align-items: flex-end; justify-content: center; height: 100%;">
                     <div class="bar" style="height: 0%; margin: 0 auto;"><span class="bar-value"></span></div>
                     <span class="bar-label">Mar</span>
                 </div>
-                <div style="flex: 1; text-align: center; position: relative; margin: 0 8px;">
+                <div style="flex: 1; text-align: center; position: relative; margin: 0 8px; display: flex; align-items: flex-end; justify-content: center; height: 100%;">
                     <div class="bar" style="height: 0%; margin: 0 auto;"><span class="bar-value"></span></div>
                     <span class="bar-label">Apr</span>
                 </div>
-                <div style="flex: 1; text-align: center; position: relative; margin: 0 8px;">
+                <div style="flex: 1; text-align: center; position: relative; margin: 0 8px; display: flex; align-items: flex-end; justify-content: center; height: 100%;">
                     <div class="bar" style="height: 0%; margin: 0 auto;"><span class="bar-value"></span></div>
                     <span class="bar-label">May</span>
                 </div>
-                <div style="flex: 1; text-align: center; position: relative; margin: 0 8px;">
+                <div style="flex: 1; text-align: center; position: relative; margin: 0 8px; display: flex; align-items: flex-end; justify-content: center; height: 100%;">
                     <div class="bar" style="height: 0%; margin: 0 auto;"><span class="bar-value"></span></div>
                     <span class="bar-label">Jun</span>
                 </div>
-                <div style="flex: 1; text-align: center; position: relative; margin: 0 8px;">
+                <div style="flex: 1; text-align: center; position: relative; margin: 0 8px; display: flex; align-items: flex-end; justify-content: center; height: 100%;">
                     <div class="bar" style="height: 0%; margin: 0 auto;"><span class="bar-value"></span></div>
                     <span class="bar-label">Jul</span>
                 </div>
@@ -712,6 +712,14 @@
             generateReport();
         });
 
+        function parseAptDate(value) {
+            if (!value) return null;
+            // Backend sends 'Y-m-d H:i:s' — normalize to ISO before parsing for cross-browser safety
+            const normalized = String(value).replace(' ', 'T');
+            const date = new Date(normalized);
+            return isNaN(date.getTime()) ? null : date;
+        }
+
         function generateReport() {
             const reportType = document.querySelector('.filter-group select').value;
             const branch = document.querySelectorAll('.filter-group select')[1].value;
@@ -735,8 +743,8 @@
             if (year && !isNaN(year)) {
                 console.log(`Applying year filter: ${year}`);
                 filteredData = filteredData.filter(apt => {
-                    if (!apt.created_at) return false;
-                    const aptDate = new Date(apt.created_at);
+                    const aptDate = parseAptDate(apt.created_at);
+                    if (!aptDate) return false;
                     const aptYear = aptDate.getFullYear();
                     console.log(`  Appointment date: ${apt.created_at}, year: ${aptYear}, matches: ${aptYear === year}`);
                     return aptYear === year;
@@ -751,22 +759,10 @@
                 console.log(`Applying date range filter: ${startDateInput} to ${endDateInput}`);
                 
                 filteredData = filteredData.filter(apt => {
-                    if (!apt.created_at) {
-                        console.log(`  Skipping appointment with no created_at date`);
-                        return false;
-                    }
-                    
                     // Parse appointment date - handle both formats
-                    let aptDate;
-                    try {
-                        // Format from backend: 'Y-m-d H:i:s' like '2026-05-27 10:30:45'
-                        aptDate = new Date(apt.created_at);
-                        if (isNaN(aptDate.getTime())) {
-                            console.log(`  Invalid date format: ${apt.created_at}`);
-                            return false;
-                        }
-                    } catch (e) {
-                        console.log(`  Error parsing date: ${apt.created_at}`, e);
+                    const aptDate = parseAptDate(apt.created_at);
+                    if (!aptDate) {
+                        console.log(`  Invalid or missing date: ${apt.created_at}`);
                         return false;
                     }
                     
@@ -830,7 +826,8 @@
             
             data.forEach(apt => {
                 if (!apt.created_at) return;
-                const date = new Date(apt.created_at);
+                const date = parseAptDate(apt.created_at);
+                if (!date) return;
                 const month = date.getMonth();
                 console.log(`Processing appointment with date: ${apt.created_at}, month index: ${month}`);
                 if (month >= 0 && month < 12) {
@@ -977,42 +974,51 @@
             svg.style.width = '200px';
             svg.style.height = '200px';
 
-            // Completed slice (green)
-            const completedSlice = createPieSlice(cx, cy, radius, 0, completedAngle, '#66bb6a');
-            svg.appendChild(completedSlice);
+            const slices = [
+                { start: 0, end: completedAngle, color: '#66bb6a' },
+                { start: completedAngle, end: completedAngle + pendingAngle, color: '#ffa726' },
+                { start: completedAngle + pendingAngle, end: 360, color: '#ef5350' },
+            ];
 
-            // Pending slice (orange)
-            const pendingSlice = createPieSlice(cx, cy, radius, completedAngle, completedAngle + pendingAngle, '#ffa726');
-            svg.appendChild(pendingSlice);
-
-            // Cancelled slice (red)
-            const cancelledSlice = createPieSlice(cx, cy, radius, completedAngle + pendingAngle, 360, '#ef5350');
-            svg.appendChild(cancelledSlice);
+            slices.forEach(({ start, end, color }) => {
+                if (end - start <= 0) return;
+                svg.appendChild(createPieSlice(cx, cy, radius, start, end, color));
+            });
 
             return svg;
         }
 
         function createPieSlice(cx, cy, radius, startAngle, endAngle, color) {
             const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-            
-            const startAngleRad = (startAngle - 90) * Math.PI / 180;
-            const endAngleRad = (endAngle - 90) * Math.PI / 180;
 
-            const x1 = cx + radius * Math.cos(startAngleRad);
-            const y1 = cy + radius * Math.sin(startAngleRad);
-            const x2 = cx + radius * Math.cos(endAngleRad);
-            const y2 = cy + radius * Math.sin(endAngleRad);
+            // A full slice (e.g. one status at 100%) would produce a degenerate
+            // arc where start == end, so draw it as a complete circle instead.
+            if (endAngle - startAngle >= 359.999) {
+                path.setAttribute('d', [
+                    `M ${cx} ${cy - radius}`,
+                    `A ${radius} ${radius} 0 1 1 ${cx} ${cy + radius}`,
+                    `A ${radius} ${radius} 0 1 1 ${cx} ${cy - radius}`,
+                    'Z',
+                ].join(' '));
+            } else {
+                const startAngleRad = (startAngle - 90) * Math.PI / 180;
+                const endAngleRad = (endAngle - 90) * Math.PI / 180;
 
-            const largeArc = endAngle - startAngle > 180 ? 1 : 0;
+                const x1 = cx + radius * Math.cos(startAngleRad);
+                const y1 = cy + radius * Math.sin(startAngleRad);
+                const x2 = cx + radius * Math.cos(endAngleRad);
+                const y2 = cy + radius * Math.sin(endAngleRad);
 
-            const pathData = [
-                `M ${cx} ${cy}`,
-                `L ${x1} ${y1}`,
-                `A ${radius} ${radius} 0 ${largeArc} 1 ${x2} ${y2}`,
-                'Z'
-            ].join(' ');
+                const largeArc = endAngle - startAngle > 180 ? 1 : 0;
 
-            path.setAttribute('d', pathData);
+                path.setAttribute('d', [
+                    `M ${cx} ${cy}`,
+                    `L ${x1} ${y1}`,
+                    `A ${radius} ${radius} 0 ${largeArc} 1 ${x2} ${y2}`,
+                    'Z',
+                ].join(' '));
+            }
+
             path.setAttribute('fill', color);
             path.setAttribute('stroke', 'white');
             path.setAttribute('stroke-width', '2');
