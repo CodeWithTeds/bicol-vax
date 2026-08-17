@@ -82,34 +82,84 @@ class AdminController extends Controller
 
     private function buildAppointmentPayload(Appointment $appointment): array
     {
-        // Use the directly linked patient if available (set at booking time),
-        // otherwise fall back to the fuzzy search for older records.
         $patient = $appointment->patient ?? $this->findRelatedPatient($appointment);
 
+        $treatmentLabels = [
+            'prprep' => 'PrPEP', 'pep' => 'PEP', 'booster' => 'Booster',
+            'tet' => 'TET', 'erig' => 'ERIG', 'hrig' => 'HRIG',
+        ];
+        $treatmentRequired = $patient?->treatment_required ?? [];
+
         return [
-            'id'                 => $appointment->id,
-            'patient'            => $appointment->full_name,
-            'case_no'            => $patient?->case_no,
-            'card_no'            => $patient?->card_no,
-            'patient_source'     => $patient?->source,
-            'patient_status'     => $patient?->status,
-            'profile_photo_url'  => $patient?->profile_photo_path
+            // Appointment basics
+            'id'                    => $appointment->id,
+            'patient'               => $appointment->full_name,
+            'email'                 => $appointment->user?->email ?? $patient?->email,
+            'birthday'              => optional($appointment->birthday)->format('M d, Y'),
+            'birthday_raw'          => optional($appointment->birthday)->format('Y-m-d'),
+            'age'                   => $appointment->age,
+            'gender'                => ucfirst($appointment->gender ?? ''),
+            'address'               => $appointment->address,
+            'contact'               => $appointment->contact,
+            'parent_guardian'       => $appointment->parent_guardian,
+            'appointment_date'      => optional($appointment->appointment_date)->format('M d, Y'),
+            'appointment_date_raw'  => optional($appointment->appointment_date)->format('Y-m-d'),
+            'appointment_time'      => $appointment->appointment_time,
+            'status'                => $appointment->status,
+            'registered'            => optional($appointment->created_at)->format('M d, Y h:i A'),
+            // Patient record
+            'patient_id'            => $patient?->id,
+            'case_no'               => $patient?->case_no,
+            'card_no'               => $patient?->card_no,
+            'patient_source'        => $patient?->source,
+            'patient_status'        => $patient?->status,
+            'profile_photo_url'     => $patient?->profile_photo_path
                 ? '/storage/' . ltrim($patient->profile_photo_path, '/')
                 : null,
-            'email'              => $appointment->user?->email ?? $patient?->email,
-            'birthday'           => optional($appointment->birthday)->format('M d, Y'),
-            'birthday_raw'       => optional($appointment->birthday)->format('Y-m-d'),
-            'age'                => $appointment->age,
-            'gender'             => ucfirst($appointment->gender),
-            'address'            => $appointment->address,
-            'contact'            => $appointment->contact,
-            'appointment_date'   => optional($appointment->appointment_date)->format('M d, Y'),
-            'appointment_date_raw' => optional($appointment->appointment_date)->format('Y-m-d'),
-            'appointment_time'   => $appointment->appointment_time,
-            'status'             => $appointment->status,
-            'registered'         => optional($appointment->created_at)->format('M d, Y h:i A'),
-            'statusUpdateUrl'    => route('admin.appointments.status', $appointment),
-            'deleteUrl'          => route('admin.appointments.destroy', $appointment),
+            // Animal bite info
+            'animal_type'           => $patient?->animal_type,
+            'pet_or_stray'          => $patient?->pet_or_stray,
+            'vaccinated_animal'     => $patient?->vaccinated_animal,
+            'animal_status'         => $patient?->animal_status,
+            'date_of_bite'          => optional($patient?->date_of_bite)->format('M d, Y'),
+            'date_of_bite_raw'      => optional($patient?->date_of_bite)->format('Y-m-d'),
+            'bite_type'             => $patient?->bite_type,
+            'place_of_bite'         => $patient?->place_of_bite,
+            'severity'              => $patient?->severity,
+            'washing_of_wound'      => $patient?->washing_of_wound,
+            'tandok_tambal'         => $patient?->tandok_tambal,
+            'owner_name'            => $patient?->owner_name,
+            'owner_address'         => $patient?->owner_address,
+            // Medical history
+            'weight'                => $patient?->weight,
+            'blood_pressure'        => $patient?->blood_pressure,
+            'temperature'           => $patient?->temperature,
+            'allergy'               => $patient?->allergy,
+            'has_diabetes'          => (bool)($patient?->has_diabetes),
+            'has_cancer'            => (bool)($patient?->has_cancer),
+            'has_organ_transplant'  => (bool)($patient?->has_organ_transplant),
+            'has_ckd'               => (bool)($patient?->has_ckd),
+            'has_hiv'               => (bool)($patient?->has_hiv),
+            'taking_steroid'        => (bool)($patient?->taking_steroid),
+            'has_riv'               => (bool)($patient?->has_riv),
+            // Clinical / treatment (admin-only)
+            'cat_category'          => $patient?->cat_category,
+            'treatment_required'    => $treatmentRequired,
+            'treatment_labels'      => collect($treatmentRequired)->map(fn($t) => $treatmentLabels[$t] ?? $t)->values(),
+            'generic_name'          => $patient?->generic_name,
+            'route'                 => $patient?->route,
+            'brand_name'            => $patient?->brand_name,
+            'dosage'                => $patient?->dosage,
+            'anti_rabies_dose'      => $patient?->anti_rabies_dose,
+            'anti_rabies_date'      => optional($patient?->anti_rabies_date)->format('Y-m-d'),
+            'tetanus_status'        => $patient?->tetanus_status,
+            'tetanus_dose'          => $patient?->tetanus_dose,
+            'tetanus_date'          => optional($patient?->tetanus_date)->format('Y-m-d'),
+            'rabies_immunoglobulin' => $patient?->rabies_immunoglobulin,
+            // URLs
+            'statusUpdateUrl'       => route('admin.appointments.status', $appointment),
+            'deleteUrl'             => route('admin.appointments.destroy', $appointment),
+            'treatmentUpdateUrl'    => $patient ? route('admin.appointments.treatment', ['appointment' => $appointment, 'patient' => $patient]) : null,
         ];
     }
 
@@ -327,12 +377,32 @@ class AdminController extends Controller
     {
         $validated = $request->validate([
             'status'           => ['required', 'in:approved,not_approved'],
+            'patient'          => ['nullable', 'string', 'max:255'],
+            'contact'          => ['nullable', 'string', 'max:50'],
+            'birthday'         => ['nullable', 'date'],
+            'age'              => ['nullable', 'integer', 'min:0', 'max:150'],
+            'address'          => ['nullable', 'string', 'max:255'],
             'appointment_date' => ['nullable', 'date'],
             'appointment_time' => ['nullable', 'date_format:H:i'],
         ]);
 
         $appointment->status = $validated['status'];
 
+        if (! empty($validated['patient'])) {
+            $appointment->full_name = $validated['patient'];
+        }
+        if (! empty($validated['contact'])) {
+            $appointment->contact = $validated['contact'];
+        }
+        if (! empty($validated['birthday'])) {
+            $appointment->birthday = $validated['birthday'];
+        }
+        if (isset($validated['age']) && $validated['age'] !== null) {
+            $appointment->age = (int) $validated['age'];
+        }
+        if (! empty($validated['address'])) {
+            $appointment->address = $validated['address'];
+        }
         if (! empty($validated['appointment_date'])) {
             $appointment->appointment_date = $validated['appointment_date'];
         }
@@ -345,6 +415,23 @@ class AdminController extends Controller
         $patient = $this->findRelatedPatient($appointment);
         if ($patient) {
             $patient->status = $validated['status'];
+
+            if (! empty($validated['patient'])) {
+                $patient->full_name = $validated['patient'];
+            }
+            if (! empty($validated['contact'])) {
+                $patient->contact = $validated['contact'];
+            }
+            if (! empty($validated['birthday'])) {
+                $patient->birthday = $validated['birthday'];
+            }
+            if (isset($validated['age']) && $validated['age'] !== null) {
+                $patient->age = (int) $validated['age'];
+            }
+            if (! empty($validated['address'])) {
+                $patient->address = $validated['address'];
+            }
+
             $patient->save();
         }
 
@@ -378,6 +465,42 @@ class AdminController extends Controller
     {
         $appointment->delete();
         return response()->json(['success' => true, 'message' => 'Appointment deleted successfully.']);
+    }
+
+    public function updatePatientTreatment(Request $request, Appointment $appointment, Patient $patient)
+    {
+        $validated = $request->validate([
+            'cat_category'          => ['required', 'in:category_i,category_ii,category_iii'],
+            'treatment'             => ['nullable', 'array'],
+            'treatment.*'           => ['in:prprep,pep,booster,tet,erig,hrig'],
+            'generic_name'          => ['required', 'in:purified_vero_cell,purified_chick_embryo,human_diploid'],
+            'route'                 => ['required', 'in:intramuscular,intradermal'],
+            'brand_name'            => ['required', 'in:verorab,speeda,rabiqur,abhayrab'],
+            'dosage'                => ['required', 'in:0_1ml,0_5ml,1_0ml'],
+            'anti_rabies_dose'      => ['required', 'in:day_0,day_3,day_7,day_14,day_28'],
+            'anti_rabies_date'      => ['nullable', 'date'],
+            'tetanus_status'        => ['required', 'in:valid,expired,unknown'],
+            'tetanus_dose'          => ['required', 'in:dose1,dose2,dose3'],
+            'tetanus_date'          => ['nullable', 'date'],
+            'rabies_immunoglobulin' => ['required', 'in:erig,hrig,none'],
+        ]);
+
+        $patient->update([
+            'cat_category'          => $validated['cat_category'],
+            'treatment_required'    => $request->input('treatment', []),
+            'generic_name'          => $validated['generic_name'],
+            'route'                 => $validated['route'],
+            'brand_name'            => $validated['brand_name'],
+            'dosage'                => $validated['dosage'],
+            'anti_rabies_dose'      => $validated['anti_rabies_dose'],
+            'anti_rabies_date'      => $validated['anti_rabies_date'] ?? now()->toDateString(),
+            'tetanus_status'        => $validated['tetanus_status'],
+            'tetanus_dose'          => $validated['tetanus_dose'],
+            'tetanus_date'          => $validated['tetanus_date'] ?? now()->toDateString(),
+            'rabies_immunoglobulin' => $validated['rabies_immunoglobulin'],
+        ]);
+
+        return response()->json(['success' => true, 'message' => 'Treatment details updated successfully.']);
     }
 
     // ──────────────────────────────────────────────

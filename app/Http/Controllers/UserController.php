@@ -122,41 +122,44 @@ class UserController extends Controller
     public function storeBooking(Request $request)
     {
         $validated = $request->validate([
-            'full_name' => ['nullable', 'string', 'max:255'],
-            'birthday' => ['nullable', 'date'],
-            // Optional for user booking; generated automatically when omitted
-            'card_no' => ['nullable', 'string', 'max:100'],
-            'case_no' => ['nullable', 'string', 'max:100', 'unique:patients,case_no'],
-            'contact' => ['nullable', 'string', 'max:50'],
-            'age' => ['nullable', 'integer', 'min:0', 'max:150'],
-            'email' => ['nullable', 'email', 'max:255'],
-            'profile_photo' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
-            'gender' => ['nullable', 'in:male,female,other'],
-            'address' => ['nullable', 'string', 'max:255'],
+            // Personal info
+            'full_name'        => ['nullable', 'string', 'max:255'],
+            'birthday'         => ['nullable', 'date'],
+            'age'              => ['nullable', 'integer', 'min:0', 'max:150'],
+            'gender'           => ['nullable', 'in:male,female,other'],
+            'address'          => ['nullable', 'string', 'max:255'],
+            'contact'          => ['nullable', 'string', 'max:50'],
+            'email'            => ['nullable', 'email', 'max:255'],
+            'parent_guardian'  => ['nullable', 'string', 'max:255'],
             'appointment_date' => ['required', 'date'],
-            'parent_guardian' => ['nullable', 'string', 'max:255'],
-            'weight' => ['nullable', 'numeric', 'min:0'],
-            'cat_category' => ['required', 'in:category_i,category_ii,category_iii'],
-            'treatment' => ['nullable', 'array'],
-            'treatment.*' => ['in:prprep,pep,booster,tet,erig,hrig'],
-            'bite_type' => ['nullable', 'in:scratch,bite,lick_broken_skin,open_wound_exposure'],
-            'place_of_bite' => ['required', 'in:hand,arm,leg,foot,face,neck,finger,multiple_sites'],
-            'source' => ['required', 'in:dog,cat,bat,rat,monkey,other_animal'],
-            'severity' => ['nullable', 'in:mild,moderate,severe'],
-            'generic_name' => ['required', 'in:purified_vero_cell,purified_chick_embryo,human_diploid'],
-            'route' => ['required', 'in:intramuscular,intradermal'],
-            'brand_name' => ['required', 'in:verorab,speeda,rabiqur,abhayrab'],
-            'dosage' => ['required', 'in:0_1ml,0_5ml,1_0ml'],
-            'anti_rabies_dose' => ['required', 'in:day_0,day_3,day_7,day_14,day_28'],
-            'anti_rabies_date' => ['nullable', 'date'],
-            'tetanus_status' => ['required', 'in:valid,expired,unknown'],
-            'tetanus_dose' => ['required', 'in:dose1,dose2,dose3'],
-            'tetanus_date' => ['nullable', 'date'],
-            'rabies_immunoglobulin' => ['required', 'in:erig,hrig,none'],
+            'profile_photo'    => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
+            // Animal bite info
+            'animal_type'      => ['nullable', 'string', 'max:50'],
+            'pet_or_stray'     => ['nullable', 'in:pet,stray'],
+            'vaccinated_animal'=> ['nullable', 'in:yes,no'],
+            'animal_status'    => ['nullable', 'string', 'max:255'],
+            'date_of_bite'     => ['nullable', 'date'],
+            'place_of_bite'    => ['nullable', 'in:hand,arm,leg,foot,face,neck,finger,multiple_sites'],
+            'severity'         => ['nullable', 'in:mild,moderate,severe'],
+            'washing_of_wound' => ['nullable', 'in:yes,no'],
+            'tandok_tambal'    => ['nullable', 'in:yes,no'],
+            'owner_name'       => ['nullable', 'string', 'max:255'],
+            'owner_address'    => ['nullable', 'string', 'max:255'],
+            // Medical history
+            'weight'           => ['nullable', 'numeric', 'min:0'],
+            'blood_pressure'   => ['nullable', 'string', 'max:20'],
+            'temperature'      => ['nullable', 'string', 'max:20'],
+            'allergy'          => ['nullable', 'string', 'max:255'],
         ]);
 
-        $validated['treatment_required'] = $request->input('treatment', []);
-        unset($validated['treatment']);
+        // Medical history booleans
+        $validated['has_diabetes']         = $request->boolean('has_diabetes');
+        $validated['has_cancer']           = $request->boolean('has_cancer');
+        $validated['has_organ_transplant'] = $request->boolean('has_organ_transplant');
+        $validated['has_ckd']              = $request->boolean('has_ckd');
+        $validated['has_hiv']              = $request->boolean('has_hiv');
+        $validated['taking_steroid']       = $request->boolean('taking_steroid');
+        $validated['has_riv']              = $request->boolean('has_riv');
 
         if ($request->hasFile('profile_photo')) {
             $validated['profile_photo_path'] = $request->file('profile_photo')->store('profile-photos', 'public');
@@ -168,52 +171,55 @@ class UserController extends Controller
             ? Patient::where('email', $authUser->email)->latest()->first()
             : null;
 
-        // Resolve branch_id — prefer the user's own branch, then look for
-        // the earliest patient record that has a branch set (the registration record)
         $branchId = $authUser?->branch_id
             ?? Patient::where('email', $authUser?->email ?? '')
                 ->whereNotNull('branch_id')
                 ->oldest()
                 ->value('branch_id');
 
-        // Ensure DB-required fields have defaults when omitted from the form
-        if (! array_key_exists('weight', $validated) || $validated['weight'] === null) {
-            $validated['weight'] = 0.00;
-        }
-
-        // Auto-fill removed personal fields so booking submit still works.
-        $validated['full_name'] = $validated['full_name'] ?? ($profilePatient?->full_name ?? $authUser->name ?? 'Online User');
-        $validated['email'] = $validated['email'] ?? ($authUser->email ?? $profilePatient?->email);
-        $validated['contact'] = $validated['contact'] ?? ($profilePatient?->contact ?? 'N/A');
-        $validated['age'] = (int) ($validated['age'] ?? $profilePatient?->age ?? 18);
-        $validated['birthday'] = $validated['birthday'] ?? now()->subYears(max($validated['age'], 1))->toDateString();
-        $validated['gender'] = $validated['gender'] ?? ($profilePatient?->gender ?? 'other');
-        $validated['address'] = $validated['address'] ?? ($profilePatient?->address ?? 'N/A');
+        // Auto-fill personal fields from profile
+        $validated['full_name']  = $validated['full_name']  ?? ($profilePatient?->full_name  ?? $authUser?->name ?? 'Online User');
+        $validated['email']      = $validated['email']      ?? ($authUser?->email             ?? $profilePatient?->email);
+        $validated['contact']    = $validated['contact']    ?? ($profilePatient?->contact      ?? 'N/A');
+        $validated['age']        = (int)($validated['age']  ?? $profilePatient?->age           ?? 18);
+        $validated['birthday']   = $validated['birthday']   ?? now()->subYears(max($validated['age'], 1))->toDateString();
+        $validated['gender']     = $validated['gender']     ?? ($profilePatient?->gender        ?? 'other');
+        $validated['address']    = $validated['address']    ?? ($profilePatient?->address       ?? 'N/A');
+        $validated['weight']     = $validated['weight']     ?? $profilePatient?->weight         ?? 0.00;
         $validated['profile_photo_path'] = $validated['profile_photo_path'] ?? $profilePatient?->profile_photo_path;
-        $validated['anti_rabies_date'] = $validated['anti_rabies_date'] ?? $validated['appointment_date'];
-        $validated['tetanus_date'] = $validated['tetanus_date'] ?? $validated['appointment_date'];
 
+        // Admin-filled clinical defaults (placeholder values — nurse fills later)
+        $validated['cat_category']         = 'category_i';
+        $validated['place_of_bite']        = $validated['place_of_bite'] ?? 'multiple_sites';
+        $validated['source']               = $validated['animal_type']   ?? 'other_animal';
+        $validated['generic_name']         = 'purified_vero_cell';
+        $validated['route']                = 'intramuscular';
+        $validated['brand_name']           = 'verorab';
+        $validated['dosage']               = '0_1ml';
+        $validated['anti_rabies_dose']     = 'day_0';
+        $validated['anti_rabies_date']     = $validated['appointment_date'];
+        $validated['tetanus_status']       = 'unknown';
+        $validated['tetanus_dose']         = 'dose1';
+        $validated['tetanus_date']         = $validated['appointment_date'];
+        $validated['rabies_immunoglobulin']= 'none';
+        $validated['treatment_required']   = [];
+        $validated['bite_type']            = null;
+
+        // Auto-generate card/case numbers
         if (empty($validated['card_no'])) {
             $validated['card_no'] = 'CARD-' . now()->format('YmdHis');
         }
-
         if (empty($validated['case_no'])) {
             do {
                 $candidate = 'CASE-' . now()->format('Ymd') . '-' . strtoupper(Str::random(5));
             } while (Patient::where('case_no', $candidate)->exists());
-
             $validated['case_no'] = $candidate;
         }
 
-        DB::transaction(function () use ($validated, $request, $branchId) {
+        DB::transaction(function () use ($validated, $branchId) {
             $patient = Patient::create(array_merge($validated, ['branch_id' => $branchId]));
 
-            $user = null;
-            if (auth()->check()) {
-                $user = auth()->user();
-            } elseif (!empty($validated['email'])) {
-                $user = User::where('email', $validated['email'])->first();
-            }
+            $user = auth()->check() ? auth()->user() : User::where('email', $validated['email'])->first();
 
             Appointment::create([
                 'branch_id'        => $branchId,
@@ -231,10 +237,9 @@ class UserController extends Controller
             ]);
         });
 
-        // Notify admin of new appointment request
         AdminNotification::newAppointmentRequest($validated['full_name']);
 
-        return back()->with('success', 'Booking submitted successfully. It now appears in Admin Appointments for approval.');
+        return back()->with('success', 'Booking submitted successfully. Your appointment is pending approval.');
     }
 
     public function myAppointments()

@@ -230,6 +230,30 @@
             text-decoration: underline;
         }
 
+        .profile-tab {
+            padding: 0.7rem 1.1rem;
+            border: none;
+            background: transparent;
+            color: #5a7a7a;
+            font-weight: 600;
+            font-size: 0.88rem;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            transition: all 0.2s ease;
+            white-space: nowrap;
+        }
+
+        .profile-tab:hover {
+            color: #2b8f90;
+            background: rgba(43, 143, 144, 0.04);
+        }
+
+        .profile-tab.active {
+            color: #2b8f90;
+            border-bottom-color: #2b8f90;
+            background: rgba(43, 143, 144, 0.06);
+        }
+
         .profile-card {
             padding: 1.75rem;
             text-align: center;
@@ -380,13 +404,22 @@
     </div>
 
     <div class="modal-overlay" id="viewProfileModal" aria-hidden="true">
-        <div class="modal-content" role="dialog" aria-modal="true" aria-labelledby="viewProfileTitle" tabindex="-1" style="max-width: 500px;">
+        <div class="modal-content" role="dialog" aria-modal="true" aria-labelledby="viewProfileTitle" tabindex="-1" style="max-width:720px;">
             <button class="close-icon" onclick="closeProfileModal()" aria-label="Close profile">×</button>
             <div class="modal-header">
                 <h2 id="viewProfileTitle">Patient Profile</h2>
-                <p>Booking information and wound/bite photo</p>
+                <p>Full patient information and bite details</p>
             </div>
-            <div class="profile-card" id="profileCardContent"></div>
+
+            <!-- Tabs -->
+            <div style="display:flex;gap:0;border-bottom:2px solid #e0eeee;padding:0 1.5rem;background:#f4fbfb;">
+                <button type="button" class="profile-tab active" data-tab="personal" onclick="switchProfileTab('personal')">👤 Personal</button>
+                <button type="button" class="profile-tab" data-tab="bite" onclick="switchProfileTab('bite')">🐾 Animal Bite</button>
+                <button type="button" class="profile-tab" data-tab="medical" onclick="switchProfileTab('medical')">🏥 Medical</button>
+                <button type="button" class="profile-tab" data-tab="treatment" onclick="switchProfileTab('treatment')">💉 Treatment</button>
+            </div>
+
+            <div id="profileTabContent" style="padding:1.25rem 1.75rem;overflow-y:auto;max-height:65vh;"></div>
         </div>
     </div>
 
@@ -441,28 +474,39 @@
 
     <!-- Edit Appointment Modal -->
     <div class="modal-overlay" id="editAptModal" aria-hidden="true">
-        <div class="modal-content" role="dialog" aria-modal="true" aria-labelledby="editAptTitle" tabindex="-1">
+        <div class="modal-content" role="dialog" aria-modal="true" aria-labelledby="editAptTitle" tabindex="-1" style="max-width:680px;">
             <button class="close-icon" onclick="closeEditAptModal()" aria-label="Close modal">×</button>
 
             <div class="modal-header">
                 <h2 id="editAptTitle">Edit Appointment</h2>
-                <p>Review and update appointment details</p>
+                <p>Update appointment and treatment details</p>
             </div>
 
-            <form onsubmit="saveAppointmentChanges(event)">
-                <div id="editAptForm" style="padding: 1.5rem 2rem;">
+            <!-- Edit Tabs -->
+            <div style="display:flex;gap:0;border-bottom:2px solid #e0eeee;padding:0 1.5rem;background:#f4fbfb;">
+                <button type="button" class="profile-tab active" data-edittab="info" onclick="switchEditTab('info')">📋 Appointment Info</button>
+                <button type="button" class="profile-tab" data-edittab="treatment" onclick="switchEditTab('treatment')">💉 Treatment (Nurse)</button>
+            </div>
+
+            <!-- Tab: Appointment Info -->
+            <form onsubmit="saveAppointmentChanges(event)" id="editInfoForm">
+                <div id="editTabInfo" style="padding:1.5rem 2rem;">
                     <input type="hidden" id="editAptId">
 
                     <div class="form-group">
                         <label for="editAptPatient">👤 Patient Name</label>
                         <input type="text" id="editAptPatient" required>
                     </div>
-
-                    <div class="form-group">
-                        <label for="editAptContact">📱 Contact Number</label>
-                        <input type="tel" id="editAptContact">
+                    <div class="form-group row">
+                        <div class="form-group">
+                            <label for="editAptContact">📱 Contact</label>
+                            <input type="tel" id="editAptContact">
+                        </div>
+                        <div class="form-group">
+                            <label for="editAptGender">👥 Gender</label>
+                            <input type="text" id="editAptGender" disabled>
+                        </div>
                     </div>
-
                     <div class="form-group row">
                         <div class="form-group">
                             <label for="editAptBirthday">📅 Birthday</label>
@@ -473,43 +517,153 @@
                             <input type="number" id="editAptAge">
                         </div>
                     </div>
-
                     <div class="form-group">
                         <label for="editAptEmail">📧 Email</label>
                         <input type="email" id="editAptEmail" disabled>
                     </div>
-
                     <div class="form-group">
                         <label for="editAptAddress">📍 Address</label>
                         <input type="text" id="editAptAddress">
                     </div>
-
-                    <div class="form-group">
-                        <label for="editAptGender">👥 Gender</label>
-                        <input type="text" id="editAptGender" disabled>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="editAptAppointmentDate">📅 Appointment Date</label>
-                        <input type="date" id="editAptAppointmentDate">
-                    </div>
-
-                    <div class="form-group">
-                        <label for="editAptStatus">✅ Status</label>
-                        <select id="editAptStatus" required>
-                            <option value="not_approved">Not Approved</option>
-                            <option value="approved">Approved</option>
-                        </select>
+                    <div class="form-group row">
+                        <div class="form-group">
+                            <label for="editAptAppointmentDate">📅 Appointment Date</label>
+                            <input type="date" id="editAptAppointmentDate">
+                        </div>
+                        <div class="form-group">
+                            <label for="editAptStatus">✅ Status</label>
+                            <select id="editAptStatus" required>
+                                <option value="not_approved">Not Approved</option>
+                                <option value="approved">Approved</option>
+                            </select>
+                        </div>
                     </div>
                 </div>
+                <div class="modal-buttons" id="editInfoButtons">
+                    <button type="button" class="modal-button close" onclick="closeEditAptModal()">Cancel</button>
+                    <button type="submit" class="modal-button submit">Save Changes</button>
+                </div>
+            </form>
 
-                <div class="modal-buttons">
-                    <button type="button" class="modal-button close" onclick="closeEditAptModal()">
-                        <span>Cancel</span>
-                    </button>
-                    <button type="submit" class="modal-button submit">
-                        <span>Save Changes</span>
-                    </button>
+            <!-- Tab: Treatment -->
+            <form onsubmit="saveTreatmentChanges(event)" id="editTreatmentForm" style="display:none;">
+                <div id="editTabTreatment" style="padding:1.5rem 2rem;overflow-y:auto;max-height:60vh;">
+                    <input type="hidden" id="treatmentAptId">
+                    <input type="hidden" id="treatmentPatientId">
+
+                    <div class="form-group">
+                        <label>CAT Category *</label>
+                        <select id="editCatCategory" required>
+                            <option value="category_i">Category I</option>
+                            <option value="category_ii">Category II</option>
+                            <option value="category_iii">Category III</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Treatment Required</label>
+                        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:0.5rem;margin-top:0.3rem;">
+                            <label style="display:flex;align-items:center;gap:0.4rem;font-weight:500;"><input type="checkbox" id="tx_prprep" value="prprep"> PrPEP</label>
+                            <label style="display:flex;align-items:center;gap:0.4rem;font-weight:500;"><input type="checkbox" id="tx_pep" value="pep"> PEP</label>
+                            <label style="display:flex;align-items:center;gap:0.4rem;font-weight:500;"><input type="checkbox" id="tx_booster" value="booster"> Booster</label>
+                            <label style="display:flex;align-items:center;gap:0.4rem;font-weight:500;"><input type="checkbox" id="tx_tet" value="tet"> TET</label>
+                            <label style="display:flex;align-items:center;gap:0.4rem;font-weight:500;"><input type="checkbox" id="tx_erig" value="erig"> ERIG</label>
+                            <label style="display:flex;align-items:center;gap:0.4rem;font-weight:500;"><input type="checkbox" id="tx_hrig" value="hrig"> HRIG</label>
+                        </div>
+                    </div>
+
+                    <div class="form-group row">
+                        <div class="form-group">
+                            <label>Generic Name *</label>
+                            <select id="editGenericName" required>
+                                <option value="purified_vero_cell">Purified Vero Cell</option>
+                                <option value="purified_chick_embryo">Purified Chick Embryo</option>
+                                <option value="human_diploid">Human Diploid</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Route *</label>
+                            <select id="editRoute" required>
+                                <option value="intramuscular">Intramuscular</option>
+                                <option value="intradermal">Intradermal</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-group row">
+                        <div class="form-group">
+                            <label>Brand Name *</label>
+                            <select id="editBrandName" required>
+                                <option value="verorab">Verorab</option>
+                                <option value="speeda">Speeda</option>
+                                <option value="rabiqur">Rabiqur</option>
+                                <option value="abhayrab">Abhayrab</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Dosage *</label>
+                            <select id="editDosage" required>
+                                <option value="0_1ml">0.1 ml</option>
+                                <option value="0_5ml">0.5 ml</option>
+                                <option value="1_0ml">1.0 ml</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-group row">
+                        <div class="form-group">
+                            <label>Anti-Rabies Dose *</label>
+                            <select id="editAntiRabiesDose" required>
+                                <option value="day_0">Day 0</option>
+                                <option value="day_3">Day 3</option>
+                                <option value="day_7">Day 7</option>
+                                <option value="day_14">Day 14</option>
+                                <option value="day_28">Day 28</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Anti-Rabies Date</label>
+                            <input type="date" id="editAntiRabiesDate">
+                        </div>
+                    </div>
+
+                    <div class="form-group row">
+                        <div class="form-group">
+                            <label>Tetanus Status *</label>
+                            <select id="editTetanusStatus" required>
+                                <option value="valid">Valid</option>
+                                <option value="expired">Expired</option>
+                                <option value="unknown">Unknown</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Tetanus Dose *</label>
+                            <select id="editTetanusDose" required>
+                                <option value="dose1">Dose 1</option>
+                                <option value="dose2">Dose 2</option>
+                                <option value="dose3">Dose 3</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-group row">
+                        <div class="form-group">
+                            <label>Tetanus Date</label>
+                            <input type="date" id="editTetanusDate">
+                        </div>
+                        <div class="form-group">
+                            <label>Rabies Immunoglobulin *</label>
+                            <select id="editRabiesImmuno" required>
+                                <option value="erig">ERIG</option>
+                                <option value="hrig">HRIG</option>
+                                <option value="none">None</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-buttons" id="editTreatmentButtons">
+                    <button type="button" class="modal-button close" onclick="closeEditAptModal()">Cancel</button>
+                    <button type="submit" class="modal-button submit">Save Treatment</button>
                 </div>
             </form>
         </div>
@@ -923,27 +1077,134 @@
             const apt = appointments.find(appointment => appointment.id === id);
             if (!apt) return;
 
-            document.getElementById('profileCardContent').innerHTML = `
-                ${apt.profile_photo_url
-                    ? `<div style="margin:0 auto 1rem;width:160px;height:130px;border-radius:8px;overflow:hidden;border:2px solid #b2d8d8;background:#f4fbfb;cursor:zoom-in;" onclick="openPhotoLightbox('${apt.profile_photo_url.replace(/'/g, "\\'")}')">
-                         <img src="${apt.profile_photo_url}" alt="Wound/bite photo" title="Click to enlarge" style="width:100%;height:100%;object-fit:cover;display:block;">
-                       </div>
-                       <p style="font-size:0.75rem;color:#668181;margin:-0.5rem 0 0.75rem;">🔍 Click photo to enlarge</p>`
-                    : `<span class="patient-avatar patient-avatar-fallback" style="width:112px;height:112px;margin:0 auto 0.9rem;display:flex;">${initials(apt.patient)}</span>`
-                }
-                <h3 style="margin: 0; color: #1e3131;">${escapeHtml(apt.patient)}</h3>
-                <p style="margin: 0.3rem 0 0; color: #668181;">${escapeHtml(apt.email || 'No email provided')}</p>
-                <div class="profile-details">
-                    <div><span>Contact</span>${escapeHtml(apt.contact || 'Not provided')}</div>
-                    <div><span>Birthday</span>${escapeHtml(apt.birthday || 'Not provided')}</div>
-                    <div><span>Age</span>${escapeHtml(apt.age || 'Not provided')}</div>
-                    <div><span>Appointment</span>${escapeHtml(apt.appointment_date || 'Not scheduled')}</div>
-                </div>`;
+            // Store current apt for tab switching
+            window._currentProfileApt = apt;
 
             const modal = document.getElementById('viewProfileModal');
             modal.classList.add('active');
             modal.setAttribute('aria-hidden', 'false');
             document.body.style.overflow = 'hidden';
+
+            // Reset to personal tab
+            document.querySelectorAll('.profile-tab').forEach(t => t.classList.remove('active'));
+            document.querySelector('.profile-tab[data-tab="personal"]').classList.add('active');
+            renderProfileTab('personal');
+        }
+
+        function switchProfileTab(tab) {
+            document.querySelectorAll('.profile-tab[data-tab]').forEach(t => t.classList.toggle('active', t.dataset.tab === tab));
+            renderProfileTab(tab);
+        }
+
+        function yn(val) {
+            if (val === true || val === 'yes') return '<span style="color:#2b8f90;font-weight:700;">Yes</span>';
+            if (val === false || val === 'no') return '<span style="color:#999;">No</span>';
+            return '<span style="color:#ccc;">—</span>';
+        }
+
+        function field(label, value) {
+            return `<div style="padding:0.6rem 0.75rem;background:#f4fbfb;border-radius:8px;">
+                <span style="display:block;font-size:0.7rem;font-weight:700;text-transform:uppercase;color:#668181;margin-bottom:0.2rem;">${label}</span>
+                <span style="font-size:0.92rem;color:#1e3131;">${escapeHtml(value || '—')}</span>
+            </div>`;
+        }
+
+        function renderProfileTab(tab) {
+            const apt = window._currentProfileApt;
+            if (!apt) return;
+            const container = document.getElementById('profileTabContent');
+
+            if (tab === 'personal') {
+                container.innerHTML = `
+                    <div style="text-align:center;margin-bottom:1rem;">
+                        ${apt.profile_photo_url
+                            ? `<div style="margin:0 auto 0.75rem;width:140px;height:115px;border-radius:8px;overflow:hidden;border:2px solid #b2d8d8;cursor:zoom-in;" onclick="openPhotoLightbox('${apt.profile_photo_url.replace(/'/g,"\\'")}')">
+                                <img src="${apt.profile_photo_url}" style="width:100%;height:100%;object-fit:cover;display:block;" alt="Wound photo">
+                               </div>
+                               <p style="font-size:0.72rem;color:#668181;margin:-0.25rem 0 0.5rem;">🔍 Click to enlarge</p>`
+                            : `<span class="patient-avatar patient-avatar-fallback" style="width:90px;height:90px;margin:0 auto 0.75rem;display:flex;">${initials(apt.patient)}</span>`
+                        }
+                        <h3 style="margin:0;color:#1e3131;">${escapeHtml(apt.patient)}</h3>
+                        <p style="margin:0.2rem 0 0;color:#668181;font-size:0.88rem;">${escapeHtml(apt.email || 'No email')}</p>
+                    </div>
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.6rem;">
+                        ${field('Contact', apt.contact)}
+                        ${field('Gender', apt.gender)}
+                        ${field('Birthday', apt.birthday)}
+                        ${field('Age', apt.age)}
+                        ${field('Address', apt.address)}
+                        ${field('Parent / Guardian', apt.parent_guardian)}
+                        ${field('Appointment Date', apt.appointment_date)}
+                        ${field('Appointment Time', apt.appointment_time)}
+                        ${field('Case No.', apt.case_no)}
+                        ${field('Card No.', apt.card_no)}
+                        ${field('Registered', apt.registered)}
+                        ${field('Status', apt.status)}
+                    </div>`;
+            }
+
+            if (tab === 'bite') {
+                container.innerHTML = `
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.6rem;">
+                        ${field('Animal Type (NOB)', apt.animal_type)}
+                        ${field('Pet / Stray', apt.pet_or_stray)}
+                        ${field('Vaccinated Animal', apt.vaccinated_animal)}
+                        ${field('Animal Status', apt.animal_status)}
+                        ${field('Date of Bite', apt.date_of_bite)}
+                        ${field('Site of Bite', apt.place_of_bite)}
+                        ${field('Severity', apt.severity)}
+                        ${field('Bite Type', apt.bite_type)}
+                        ${field('Washing of Wound', apt.washing_of_wound)}
+                        ${field('Tandok / Tambal', apt.tandok_tambal)}
+                        ${field('Owner Name', apt.owner_name)}
+                        ${field('Owner Address', apt.owner_address)}
+                    </div>`;
+            }
+
+            if (tab === 'medical') {
+                const conds = [
+                    ['Diabetes (IDDM)', apt.has_diabetes],
+                    ['Cancer', apt.has_cancer],
+                    ['Organ Transplant', apt.has_organ_transplant],
+                    ['CKD', apt.has_ckd],
+                    ['HIV', apt.has_hiv],
+                    ['Taking Steroid', apt.taking_steroid],
+                    ['RIV', apt.has_riv],
+                ];
+                container.innerHTML = `
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.6rem;margin-bottom:0.75rem;">
+                        ${conds.map(([l, v]) => `<div style="padding:0.6rem 0.75rem;background:#f4fbfb;border-radius:8px;display:flex;justify-content:space-between;align-items:center;">
+                            <span style="font-size:0.88rem;color:#1e3131;">${l}</span>${yn(v)}
+                        </div>`).join('')}
+                    </div>
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.6rem;">
+                        ${field('Weight', apt.weight ? apt.weight + ' kg' : null)}
+                        ${field('Blood Pressure', apt.blood_pressure)}
+                        ${field('Temperature', apt.temperature)}
+                        ${field('Allergy', apt.allergy)}
+                    </div>`;
+            }
+
+            if (tab === 'treatment') {
+                const txLabels = { prprep:'PrPEP', pep:'PEP', booster:'Booster', tet:'TET', erig:'ERIG', hrig:'HRIG' };
+                const txList = (apt.treatment_required || []).map(t => txLabels[t] || t).join(', ') || '—';
+                const catMap = { category_i:'Category I', category_ii:'Category II', category_iii:'Category III' };
+                container.innerHTML = `
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.6rem;">
+                        ${field('CAT Category', catMap[apt.cat_category] || apt.cat_category)}
+                        ${field('Treatment Required', txList)}
+                        ${field('Generic Name', apt.generic_name?.replace(/_/g,' '))}
+                        ${field('Route', apt.route)}
+                        ${field('Brand Name', apt.brand_name)}
+                        ${field('Dosage', apt.dosage?.replace(/_/g,'.'))}
+                        ${field('Anti-Rabies Dose', apt.anti_rabies_dose?.replace(/_/g,' '))}
+                        ${field('Anti-Rabies Date', apt.anti_rabies_date)}
+                        ${field('Tetanus Status', apt.tetanus_status)}
+                        ${field('Tetanus Dose', apt.tetanus_dose)}
+                        ${field('Tetanus Date', apt.tetanus_date)}
+                        ${field('Rabies Immunoglobulin', apt.rabies_immunoglobulin?.toUpperCase())}
+                    </div>`;
+            }
         }
 
         function closeProfileModal() {
@@ -1260,7 +1521,7 @@
             const apt = appointments.find(a => a.id === id);
             if (!apt) return;
 
-            // Populate modal with appointment data
+            // Populate Appointment Info tab
             document.getElementById('editAptId').value = apt.id;
             document.getElementById('editAptPatient').value = apt.patient;
             document.getElementById('editAptEmail').value = apt.email || '';
@@ -1270,13 +1531,131 @@
             document.getElementById('editAptGender').value = apt.gender || '';
             document.getElementById('editAptAddress').value = apt.address || '';
             document.getElementById('editAptAppointmentDate').value = apt.appointment_date_raw || '';
-            
-            // Set status - ensure it matches dropdown options
+
             const statusValue = apt.status && apt.status.toLowerCase() === 'approved' ? 'approved' : 'not_approved';
             document.getElementById('editAptStatus').value = statusValue;
 
-            // Open modal
+            // Populate Treatment tab
+            document.getElementById('treatmentAptId').value = apt.id;
+            document.getElementById('treatmentPatientId').value = apt.patient_id || '';
+            document.getElementById('editCatCategory').value = apt.cat_category || 'category_ii';
+
+            const txCheckboxes = { prprep: false, pep: false, booster: false, tet: false, erig: false, hrig: false };
+            (apt.treatment_required || []).forEach(t => { if (t in txCheckboxes) txCheckboxes[t] = true; });
+            Object.keys(txCheckboxes).forEach(k => {
+                const el = document.getElementById('tx_' + k);
+                if (el) el.checked = txCheckboxes[k];
+            });
+
+            document.getElementById('editGenericName').value = apt.generic_name || 'purified_vero_cell';
+            document.getElementById('editRoute').value = apt.route || 'intramuscular';
+            document.getElementById('editBrandName').value = apt.brand_name || 'verorab';
+            document.getElementById('editDosage').value = apt.dosage || '0_5ml';
+            document.getElementById('editAntiRabiesDose').value = apt.anti_rabies_dose || 'day_0';
+            document.getElementById('editAntiRabiesDate').value = apt.anti_rabies_date || '';
+            document.getElementById('editTetanusStatus').value = apt.tetanus_status || 'unknown';
+            document.getElementById('editTetanusDose').value = apt.tetanus_dose || 'dose1';
+            document.getElementById('editTetanusDate').value = apt.tetanus_date || '';
+            document.getElementById('editRabiesImmuno').value = apt.rabies_immunoglobulin || 'none';
+
+            // Store current apt reference for tab switching
+            window._currentEditApt = apt;
+
+            // Reset to Info tab
+            document.querySelectorAll('.profile-tab[data-edittab]').forEach(t => t.classList.remove('active'));
+            document.querySelector('.profile-tab[data-edittab="info"]').classList.add('active');
+            document.getElementById('editInfoForm').style.display = '';
+            document.getElementById('editInfoButtons').style.display = '';
+            document.getElementById('editTreatmentForm').style.display = 'none';
+            document.getElementById('editTreatmentButtons').style.display = 'none';
+
             openEditAptModal();
+        }
+
+        function switchEditTab(tab) {
+            document.querySelectorAll('.profile-tab[data-edittab]').forEach(t =>
+                t.classList.toggle('active', t.dataset.edittab === tab)
+            );
+
+            const showInfo = tab === 'info';
+            document.getElementById('editInfoForm').style.display = showInfo ? '' : 'none';
+            document.getElementById('editInfoButtons').style.display = showInfo ? '' : 'none';
+            document.getElementById('editTreatmentForm').style.display = showInfo ? 'none' : '';
+            document.getElementById('editTreatmentButtons').style.display = showInfo ? 'none' : '';
+        }
+
+        function saveTreatmentChanges(event) {
+            event.preventDefault();
+            if (isLoading) return;
+
+            const aptId = Number(document.getElementById('treatmentAptId').value);
+            const apt = window._currentEditApt;
+            if (!apt || !apt.treatmentUpdateUrl) {
+                console.error('Unable to save treatment: missing appointment or URL.');
+                return;
+            }
+
+            const treatment = [];
+            ['prprep','pep','booster','tet','erig','hrig'].forEach(k => {
+                const cb = document.getElementById('tx_' + k);
+                if (cb && cb.checked) treatment.push(k);
+            });
+
+            const body = {
+                cat_category:          document.getElementById('editCatCategory').value,
+                treatment:             treatment,
+                generic_name:          document.getElementById('editGenericName').value,
+                route:                 document.getElementById('editRoute').value,
+                brand_name:            document.getElementById('editBrandName').value,
+                dosage:                document.getElementById('editDosage').value,
+                anti_rabies_dose:      document.getElementById('editAntiRabiesDose').value,
+                anti_rabies_date:      document.getElementById('editAntiRabiesDate').value || null,
+                tetanus_status:        document.getElementById('editTetanusStatus').value,
+                tetanus_dose:          document.getElementById('editTetanusDose').value,
+                tetanus_date:          document.getElementById('editTetanusDate').value || null,
+                rabies_immunoglobulin: document.getElementById('editRabiesImmuno').value,
+            };
+
+            closeEditAptModal();
+            isLoading = true;
+
+            fetch(apt.treatmentUpdateUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': csrfToken,
+                },
+                body: JSON.stringify(body),
+            })
+                .then(async (response) => {
+                    const data = await response.json().catch(() => ({}));
+                    if (!response.ok) {
+                        console.error('Treatment update failed:', data.message || data.errors || 'Unable to save treatment.');
+                        showToast('Failed to save treatment details.', 'error');
+                    } else {
+                        // Update local appointment data
+                        apt.cat_category = body.cat_category;
+                        apt.treatment_required = body.treatment;
+                        apt.generic_name = body.generic_name;
+                        apt.route = body.route;
+                        apt.brand_name = body.brand_name;
+                        apt.dosage = body.dosage;
+                        apt.anti_rabies_dose = body.anti_rabies_dose;
+                        apt.anti_rabies_date = body.anti_rabies_date;
+                        apt.tetanus_status = body.tetanus_status;
+                        apt.tetanus_dose = body.tetanus_dose;
+                        apt.tetanus_date = body.tetanus_date;
+                        apt.rabies_immunoglobulin = body.rabies_immunoglobulin;
+                        showToast('Treatment details saved.', 'success');
+                    }
+                    isLoading = false;
+                })
+                .catch((error) => {
+                    console.error('Treatment update error:', error);
+                    showToast('Failed to save treatment details.', 'error');
+                    isLoading = false;
+                });
         }
 
         function openEditAptModal() {
@@ -1291,6 +1670,8 @@
             modal.classList.remove('active');
             modal.setAttribute('aria-hidden', 'true');
             document.body.style.overflow = 'auto';
+            // Reset to info tab
+            switchEditTab('info');
         }
 
         function saveAppointmentChanges(event) {
