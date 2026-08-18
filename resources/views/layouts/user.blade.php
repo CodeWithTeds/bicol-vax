@@ -200,7 +200,8 @@
     <header>
         <div class="header-container">
             <a href="{{ route('user.dashboard') }}" class="brand">
-                <img src="{{ asset('logo.png') }}" alt="BicolVax Logo" style="width: 60px; height: 60px; object-fit: contain; background: transparent;">
+                @php $branchLogo = auth()->user()?->branch?->logo_path; @endphp
+                <img src="{{ $branchLogo ? asset('storage/' . $branchLogo) : asset('logo.png') }}" alt="BicolVax Logo" style="width: 60px; height: 60px; object-fit: contain; background: transparent;">
                 <div>
                     <div style="font-size: 1.1rem;">BicolVax</div>
                     <div style="font-size: 0.75rem; opacity: 0.9;">Clinic Management</div>

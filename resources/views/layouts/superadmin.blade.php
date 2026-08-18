@@ -350,7 +350,7 @@
     <header>
         <div class="header-container">
             <a href="{{ route('superadmin.dashboard') }}" class="brand">
-                <img src="{{ asset('logo.png') }}" alt="BicolVax Logo">
+                <img src="{{ asset('logo.png') }}" alt="BicolVax Logo" style="width: 45px; height: 45px; object-fit: contain;">
                 <div>
                     <div style="font-size: 1.1rem;">BicolVax <span class="sa-badge">Super Admin</span></div>
                     <div style="font-size: 0.75rem; opacity: 0.9;">Multi-Branch Management</div>

@@ -13,6 +13,8 @@ class Branch extends Model
         'address',
         'contact',
         'email',
+        'operating_hours',
+        'logo_path',
         'is_active',
     ];
 

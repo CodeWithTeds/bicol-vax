@@ -7,6 +7,7 @@ use App\Models\Patient;
 use App\Models\AdminNotification;
 use App\Models\ScheduledReminder;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\PatientApprovedMail;
 use App\Mail\ScheduledReminderMail;
@@ -538,7 +539,98 @@ class AdminController extends Controller
 
     public function settings()
     {
-        return view('admin.settings');
+        $branch = Auth::user()?->branch;
+        $notificationSettings = session('notification_settings', [
+            'enable_email_notifications'     => true,
+            'notify_patients_after_approval' => true,
+            'send_appointment_reminder'      => true,
+            'send_vaccination_reminder'      => true,
+            'notify_staff_new_appointment'   => true,
+        ]);
+        return view('admin.settings', compact('branch', 'notificationSettings'));
+    }
+
+    public function updateClinicSettings(Request $request)
+    {
+        $request->validate([
+            'clinic_name'    => 'required|string|max:255',
+            'clinic_address' => 'nullable|string|max:500',
+            'clinic_email'   => 'nullable|email|max:255',
+            'clinic_contact' => 'nullable|string|max:50',
+            'clinic_hours'   => 'nullable|string|max:255',
+            'clinic_logo'    => 'nullable|image|mimes:jpeg,png|max:2048',
+        ]);
+
+        $branch = Auth::user()?->branch;
+
+        if (! $branch) {
+            return back()->with('error', 'No branch associated with your account.');
+        }
+
+        $data = [
+            'name'            => $request->clinic_name,
+            'address'         => $request->clinic_address,
+            'email'           => $request->clinic_email,
+            'contact'         => $request->clinic_contact,
+            'operating_hours' => $request->clinic_hours,
+        ];
+
+        if ($request->hasFile('clinic_logo')) {
+            if ($branch->logo_path && Storage::disk('public')->exists($branch->logo_path)) {
+                Storage::disk('public')->delete($branch->logo_path);
+            }
+            $path = $request->file('clinic_logo')->store('branch_logos', 'public');
+            $data['logo_path'] = $path;
+        }
+
+        $branch->update($data);
+
+        return back()->with('success', 'Clinic information saved successfully.');
+    }
+
+    public function updateAccountSettings(Request $request)
+    {
+        $user = Auth::user();
+
+        $rules = [
+            'admin_name'  => 'required|string|max:255',
+            'admin_email' => 'required|email|max:255|unique:users,email,' . $user->id,
+        ];
+
+        if ($request->filled('new_password')) {
+            $rules['current_password']         = 'required';
+            $rules['new_password']             = 'required|min:8|confirmed';
+        }
+
+        $request->validate($rules);
+
+        if ($request->filled('new_password')) {
+            if (! \Illuminate\Support\Facades\Hash::check($request->current_password, $user->password)) {
+                return back()->withErrors(['current_password' => 'The current password is incorrect.'])->withInput();
+            }
+            $user->password = \Illuminate\Support\Facades\Hash::make($request->new_password);
+        }
+
+        $user->name  = $request->admin_name;
+        $user->email = $request->admin_email;
+        $user->save();
+
+        return back()->with('success', 'Account updated successfully.');
+    }
+
+    public function updateNotificationSettings(Request $request)
+    {
+        $settings = [
+            'enable_email_notifications'     => $request->boolean('enable_email_notifications'),
+            'notify_patients_after_approval' => $request->boolean('notify_patients_after_approval'),
+            'send_appointment_reminder'      => $request->boolean('send_appointment_reminder'),
+            'send_vaccination_reminder'      => $request->boolean('send_vaccination_reminder'),
+            'notify_staff_new_appointment'   => $request->boolean('notify_staff_new_appointment'),
+        ];
+
+        session(['notification_settings' => $settings]);
+
+        return back()->with('success', 'Notification settings saved.');
     }
 
     // ──────────────────────────────────────────────

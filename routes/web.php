@@ -53,6 +53,9 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin.otp'])->group
     Route::delete('/notifications/{notification}', [AdminController::class, 'destroyNotification'])->name('notifications.destroy');
     Route::get('/reports', [AdminController::class, 'reports'])->name('reports');
     Route::get('/settings', [AdminController::class, 'settings'])->name('settings');
+    Route::patch('/settings/clinic', [AdminController::class, 'updateClinicSettings'])->name('settings.clinic');
+    Route::patch('/settings/account', [AdminController::class, 'updateAccountSettings'])->name('settings.account');
+    Route::patch('/settings/notifications', [AdminController::class, 'updateNotificationSettings'])->name('settings.notifications');
 });
 
 // User routes
