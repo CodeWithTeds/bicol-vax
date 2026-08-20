@@ -293,28 +293,37 @@ class UserController extends Controller
             'branch_id'        => ['required', 'exists:branches,id'],
         ]);
 
+        // One account per person: reject if email already registered
+        if (User::where('email', $validated['email'])->exists()) {
+            $message = 'An account with this email already exists. Please log in instead.';
+            if ($request->expectsJson()) {
+                return response()->json(['message' => $message], 422);
+            }
+            return back()->withErrors(['email' => $message])->withInput();
+        }
+
+        // Also check if a patient record with this email already exists
+        if (Patient::where('email', $validated['email'])->exists()) {
+            $message = 'A patient record with this email already exists. Please contact the clinic.';
+            if ($request->expectsJson()) {
+                return response()->json(['message' => $message], 422);
+            }
+            return back()->withErrors(['email' => $message])->withInput();
+        }
+
         $registration = DB::transaction(function () use ($validated) {
             $branchId = (int) $validated['branch_id'];
 
             $providedPassword = $validated['password'];
 
-            // Check if a user account already exists for this email
-            $user = User::where('email', $validated['email'])->first();
+            // Create new user account
+            $displayName = explode('@', $validated['email'])[0] ?? 'Patient';
 
-            if ($user) {
-                // update password for returning user
-                $user->password = Hash::make($providedPassword);
-                $user->save();
-            } else {
-                // keep users table minimal for privacy: use email local-part as display name
-                $displayName = explode('@', $validated['email'])[0] ?? 'Patient';
-
-                $user = User::create([
-                    'name' => $displayName,
-                    'email' => $validated['email'],
-                    'password' => Hash::make($providedPassword),
-                ]);
-            }
+            $user = User::create([
+                'name' => $displayName,
+                'email' => $validated['email'],
+                'password' => Hash::make($providedPassword),
+            ]);
 
             // store submitted personal details in patients so admins see them in Online Registrations
             $fullName = $validated['fullname'] ?? explode('@', $user->email)[0] ?? 'Patient';
