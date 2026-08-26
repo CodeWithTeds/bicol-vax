@@ -185,7 +185,7 @@ class UserController extends Controller
         $validated['birthday']   = $validated['birthday']   ?? now()->subYears(max($validated['age'], 1))->toDateString();
         $validated['gender']     = $validated['gender']     ?? ($profilePatient?->gender        ?? 'other');
         $validated['address']    = $validated['address']    ?? ($profilePatient?->address       ?? 'N/A');
-        $validated['weight']     = $validated['weight']     ?? $profilePatient?->weight         ?? 0.00;
+        $validated['weight']     = $validated['weight']     ?? $profilePatient?->weight;
         $validated['profile_photo_path'] = $validated['profile_photo_path'] ?? $profilePatient?->profile_photo_path;
 
         // Admin-filled clinical defaults (placeholder values — nurse fills later)
@@ -353,7 +353,7 @@ class UserController extends Controller
                 'email' => $user->email,
                 'gender' => $gender,
                 'address' => $address,
-                'weight' => 0.00,
+                'weight' => null,
                 'source' => 'web',
                 'cat_category' => 'category_i',
                 'treatment_required' => null,

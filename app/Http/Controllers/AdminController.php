@@ -250,7 +250,7 @@ class AdminController extends Controller
             'email'                 => ['nullable', 'email', 'max:255'],
             'gender'                => ['required', 'in:male,female,other'],
             'address'               => ['required', 'string', 'max:255'],
-            'weight'                => ['required', 'numeric', 'min:0'],
+            'weight'                => ['nullable', 'numeric', 'min:0'],
             'cat_category'          => ['required', 'in:category_i,category_ii,category_iii'],
             'treatment'             => ['nullable', 'array'],
             'treatment.*'           => ['in:prprep,pep,booster,tet,erig,hrig'],
@@ -286,27 +286,53 @@ class AdminController extends Controller
     public function updatePatient(Request $request, Patient $patient)
     {
         $validated = $request->validate([
+            // Personal information
             'full_name'             => ['required', 'string', 'max:255'],
             'card_no'               => ['required', 'string', 'max:100'],
             'case_no'               => ['required', 'string', 'max:100', 'unique:patients,case_no,' . $patient->id],
             'contact'               => ['required', 'string', 'max:50'],
             'age'                   => ['required', 'integer', 'min:0', 'max:150'],
+            'birthday'              => ['nullable', 'date'],
             'email'                 => ['nullable', 'email', 'max:255'],
             'gender'                => ['required', 'in:male,female,other'],
             'address'               => ['required', 'string', 'max:255'],
-            'weight'                => ['required', 'numeric', 'min:0'],
+            'weight'                => ['nullable', 'numeric', 'min:0'],
+            'blood_pressure'        => ['nullable', 'string', 'max:50'],
+            'temperature'           => ['nullable', 'string', 'max:50'],
             'cat_category'          => ['required', 'in:category_i,category_ii,category_iii'],
+            // Exposure history
             'treatment'             => ['nullable', 'array'],
             'treatment.*'           => ['in:prprep,pep,booster,tet,erig,hrig'],
             'bite_type'             => ['nullable', 'in:scratch,bite,lick_broken_skin,open_wound_exposure'],
             'place_of_bite'         => ['required', 'in:hand,arm,leg,foot,face,neck,finger,multiple_sites'],
             'source'                => ['required', 'in:dog,cat,bat,rat,monkey,other_animal'],
             'severity'              => ['nullable', 'in:mild,moderate,severe'],
+            // Animal bite details
+            'animal_type'           => ['nullable', 'string', 'max:100'],
+            'pet_or_stray'          => ['nullable', 'in:pet,stray'],
+            'vaccinated_animal'     => ['nullable', 'in:yes,no,unknown'],
+            'animal_status'         => ['nullable', 'string', 'max:255'],
+            'date_of_bite'          => ['nullable', 'date'],
+            'washing_of_wound'      => ['nullable', 'in:yes,no'],
+            'tandok_tambal'         => ['nullable', 'in:yes,no'],
+            'owner_name'            => ['nullable', 'string', 'max:255'],
+            'owner_address'         => ['nullable', 'string', 'max:255'],
+            // Medical history
+            'has_diabetes'          => ['nullable', 'boolean'],
+            'has_cancer'            => ['nullable', 'boolean'],
+            'has_organ_transplant'  => ['nullable', 'boolean'],
+            'has_ckd'               => ['nullable', 'boolean'],
+            'has_hiv'               => ['nullable', 'boolean'],
+            'taking_steroid'        => ['nullable', 'boolean'],
+            'has_riv'               => ['nullable', 'boolean'],
+            'allergy'               => ['nullable', 'string', 'max:255'],
+            // Anti-rabies vaccine
             'generic_name'          => ['required', 'in:purified_vero_cell,purified_chick_embryo,human_diploid'],
             'route'                 => ['required', 'in:intramuscular,intradermal'],
             'brand_name'            => ['required', 'in:verorab,speeda,rabiqur,abhayrab'],
             'dosage'                => ['required', 'in:0_1ml,0_5ml,1_0ml'],
             'anti_rabies_dose'      => ['required', 'in:day_0,day_3,day_7,day_14,day_28'],
+            // Tetanus & immunoglobulin
             'tetanus_status'        => ['required', 'in:valid,expired,unknown'],
             'tetanus_dose'          => ['required', 'in:dose1,dose2,dose3'],
             'rabies_immunoglobulin' => ['required', 'in:erig,hrig,none'],
@@ -314,6 +340,11 @@ class AdminController extends Controller
 
         $validated['treatment_required'] = $request->input('treatment', []);
         unset($validated['treatment']);
+
+        // Normalise boolean checkboxes — unchecked boxes are not submitted at all
+        foreach (['has_diabetes','has_cancer','has_organ_transplant','has_ckd','has_hiv','taking_steroid','has_riv'] as $flag) {
+            $validated[$flag] = $request->boolean($flag);
+        }
 
         $patient->update($validated);
 

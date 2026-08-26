@@ -261,7 +261,7 @@ class SuperAdminController extends Controller
                 'total'         => $branch->patients->count(),
                 'approved'      => $branch->patients->where('status', 'approved')->count(),
                 'pending'       => $branch->patients->filter(fn ($p) => ($p->status ?? 'not_approved') !== 'approved')->count(),
-                'severe'        => $branch->patients->where('severity', 'severe')->count(),
+                'cancelled'     => $branch->patients->where('status', 'cancelled')->count(),
                 'cat_i'         => $branch->patients->where('cat_category', 'category_i')->count(),
                 'cat_ii'        => $branch->patients->where('cat_category', 'category_ii')->count(),
                 'cat_iii'       => $branch->patients->where('cat_category', 'category_iii')->count(),

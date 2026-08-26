@@ -42,8 +42,8 @@
                     <div style="font-size:0.7rem; color:#666;">Pending</div>
                 </div>
                 <div style="background:#fff5f5; border-radius:6px; padding:0.6rem; text-align:center;">
-                    <div style="font-size:1.1rem; font-weight:700; color:#ef4444;">{{ $report['severe'] }}</div>
-                    <div style="font-size:0.7rem; color:#666;">Severe</div>
+                    <div style="font-size:1.1rem; font-weight:700; color:#ef4444;">{{ $report['cancelled'] }}</div>
+                    <div style="font-size:0.7rem; color:#666;">Cancelled</div>
                 </div>
                 <div style="background:#f5f0ff; border-radius:6px; padding:0.6rem; text-align:center;">
                     <div style="font-size:1.1rem; font-weight:700; color:#8b5cf6;">{{ $report['cat_ii'] }}</div>

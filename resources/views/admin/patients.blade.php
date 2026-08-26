@@ -607,6 +607,26 @@
                                         data-tetanus-dose="{{ e($patient->tetanus_dose) }}"
                                         data-tetanus-date="{{ e(optional($patient->tetanus_date)->format('Y-m-d')) }}"
                                         data-rabies-immunoglobulin="{{ e($patient->rabies_immunoglobulin) }}"
+                                        data-birthday="{{ e(optional($patient->birthday)->format('Y-m-d')) }}"
+                                        data-blood-pressure="{{ e($patient->blood_pressure) }}"
+                                        data-temperature="{{ e($patient->temperature) }}"
+                                        data-animal-type="{{ e($patient->animal_type) }}"
+                                        data-pet-or-stray="{{ e($patient->pet_or_stray) }}"
+                                        data-vaccinated-animal="{{ e($patient->vaccinated_animal) }}"
+                                        data-animal-status="{{ e($patient->animal_status) }}"
+                                        data-date-of-bite="{{ e(optional($patient->date_of_bite)->format('Y-m-d')) }}"
+                                        data-washing-of-wound="{{ e($patient->washing_of_wound) }}"
+                                        data-tandok-tambal="{{ e($patient->tandok_tambal) }}"
+                                        data-owner-name="{{ e($patient->owner_name) }}"
+                                        data-owner-address="{{ e($patient->owner_address) }}"
+                                        data-has-diabetes="{{ e($patient->has_diabetes ? '1' : '0') }}"
+                                        data-has-cancer="{{ e($patient->has_cancer ? '1' : '0') }}"
+                                        data-has-organ-transplant="{{ e($patient->has_organ_transplant ? '1' : '0') }}"
+                                        data-has-ckd="{{ e($patient->has_ckd ? '1' : '0') }}"
+                                        data-has-hiv="{{ e($patient->has_hiv ? '1' : '0') }}"
+                                        data-taking-steroid="{{ e($patient->taking_steroid ? '1' : '0') }}"
+                                        data-has-riv="{{ e($patient->has_riv ? '1' : '0') }}"
+                                        data-allergy="{{ e($patient->allergy) }}"
                                         data-created-at="{{ e(optional($patient->created_at)->format('Y-m-d H:i')) }}"
                                         onclick='openViewPatientModalFromButton(this)'
                                     >
@@ -705,6 +725,26 @@
                                         data-tetanus-dose="{{ e($patient->tetanus_dose) }}"
                                         data-tetanus-date="{{ e(optional($patient->tetanus_date)->format('Y-m-d')) }}"
                                         data-rabies-immunoglobulin="{{ e($patient->rabies_immunoglobulin) }}"
+                                        data-birthday="{{ e(optional($patient->birthday)->format('Y-m-d')) }}"
+                                        data-blood-pressure="{{ e($patient->blood_pressure) }}"
+                                        data-temperature="{{ e($patient->temperature) }}"
+                                        data-animal-type="{{ e($patient->animal_type) }}"
+                                        data-pet-or-stray="{{ e($patient->pet_or_stray) }}"
+                                        data-vaccinated-animal="{{ e($patient->vaccinated_animal) }}"
+                                        data-animal-status="{{ e($patient->animal_status) }}"
+                                        data-date-of-bite="{{ e(optional($patient->date_of_bite)->format('Y-m-d')) }}"
+                                        data-washing-of-wound="{{ e($patient->washing_of_wound) }}"
+                                        data-tandok-tambal="{{ e($patient->tandok_tambal) }}"
+                                        data-owner-name="{{ e($patient->owner_name) }}"
+                                        data-owner-address="{{ e($patient->owner_address) }}"
+                                        data-has-diabetes="{{ e($patient->has_diabetes ? '1' : '0') }}"
+                                        data-has-cancer="{{ e($patient->has_cancer ? '1' : '0') }}"
+                                        data-has-organ-transplant="{{ e($patient->has_organ_transplant ? '1' : '0') }}"
+                                        data-has-ckd="{{ e($patient->has_ckd ? '1' : '0') }}"
+                                        data-has-hiv="{{ e($patient->has_hiv ? '1' : '0') }}"
+                                        data-taking-steroid="{{ e($patient->taking_steroid ? '1' : '0') }}"
+                                        data-has-riv="{{ e($patient->has_riv ? '1' : '0') }}"
+                                        data-allergy="{{ e($patient->allergy) }}"
                                         data-created-at="{{ e(optional($patient->created_at)->format('Y-m-d H:i')) }}"
                                         onclick='openViewPatientModalFromButton(this)'
                                     >
@@ -797,6 +837,26 @@
                                         data-tetanus-dose="{{ e($apt->tetanus_dose) }}"
                                         data-tetanus-date="{{ e(optional($apt->tetanus_date)->format('Y-m-d')) }}"
                                         data-rabies-immunoglobulin="{{ e($apt->rabies_immunoglobulin) }}"
+                                        data-birthday="{{ e(optional($apt->birthday)->format('Y-m-d')) }}"
+                                        data-blood-pressure="{{ e($apt->blood_pressure) }}"
+                                        data-temperature="{{ e($apt->temperature) }}"
+                                        data-animal-type="{{ e($apt->animal_type) }}"
+                                        data-pet-or-stray="{{ e($apt->pet_or_stray) }}"
+                                        data-vaccinated-animal="{{ e($apt->vaccinated_animal) }}"
+                                        data-animal-status="{{ e($apt->animal_status) }}"
+                                        data-date-of-bite="{{ e(optional($apt->date_of_bite)->format('Y-m-d')) }}"
+                                        data-washing-of-wound="{{ e($apt->washing_of_wound) }}"
+                                        data-tandok-tambal="{{ e($apt->tandok_tambal) }}"
+                                        data-owner-name="{{ e($apt->owner_name) }}"
+                                        data-owner-address="{{ e($apt->owner_address) }}"
+                                        data-has-diabetes="{{ e($apt->has_diabetes ? '1' : '0') }}"
+                                        data-has-cancer="{{ e($apt->has_cancer ? '1' : '0') }}"
+                                        data-has-organ-transplant="{{ e($apt->has_organ_transplant ? '1' : '0') }}"
+                                        data-has-ckd="{{ e($apt->has_ckd ? '1' : '0') }}"
+                                        data-has-hiv="{{ e($apt->has_hiv ? '1' : '0') }}"
+                                        data-taking-steroid="{{ e($apt->taking_steroid ? '1' : '0') }}"
+                                        data-has-riv="{{ e($apt->has_riv ? '1' : '0') }}"
+                                        data-allergy="{{ e($apt->allergy) }}"
                                         data-created-at="{{ e(optional($apt->created_at)->format('Y-m-d H:i')) }}"
                                         onclick='openViewPatientModalFromButton(this)'
                                     >
@@ -1353,10 +1413,13 @@
                             <div class="form-group"><label>Case No. *</label><input type="text" name="case_no" placeholder="Case number"></div>
                             <div class="form-group"><label>Contact *</label><input type="tel" name="contact" placeholder="Phone number"></div>
                             <div class="form-group"><label>Age *</label><input type="number" name="age" placeholder="Age"></div>
+                            <div class="form-group"><label>Birthday</label><input type="date" name="birthday"></div>
                             <div class="form-group"><label>Email</label><input type="email" name="email" placeholder="Email address"></div>
                             <div class="form-group"><label>Gender *</label><select name="gender"><option value="">Select Gender</option><option value="male">Male</option><option value="female">Female</option><option value="other">Other</option></select></div>
                             <div class="form-group"><label>Address *</label><input type="text" name="address" placeholder="Street address"></div>
-                            <div class="form-group"><label>Weight *</label><input type="number" name="weight" placeholder="Weight (kg)"></div>
+                            <div class="form-group"><label>Weight (kg)</label><input type="number" step="0.1" name="weight" placeholder="Weight (kg)"></div>
+                            <div class="form-group"><label>Blood Pressure</label><input type="text" name="blood_pressure" placeholder="e.g. 120/80"></div>
+                            <div class="form-group"><label>Temperature</label><input type="text" name="temperature" placeholder="e.g. 36.5°C"></div>
                             <div class="form-group"><label>CAT (Category of exposure) *</label><select name="cat_category"><option value="">Select Category</option><option value="category_i">Category I</option><option value="category_ii">Category II</option><option value="category_iii">Category III</option></select></div>
                         </div>
                     </div>
@@ -1367,20 +1430,23 @@
                             <span class="section-title">Exposure History</span>
                         </div>
                         <div class="detail-card">
-                            <div class="form-group">
-                                <label>Treatment Required</label>
-                                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 0.75rem;">
-                                    <div style="display: flex; align-items: center; gap: 0.5rem;"><input type="checkbox" name="treatment[]" value="prprep"><label style="margin: 0; font-weight: normal;">PrPEP</label></div>
-                                    <div style="display: flex; align-items: center; gap: 0.5rem;"><input type="checkbox" name="treatment[]" value="pep"><label style="margin: 0; font-weight: normal;">PEP</label></div>
-                                    <div style="display: flex; align-items: center; gap: 0.5rem;"><input type="checkbox" name="treatment[]" value="booster"><label style="margin: 0; font-weight: normal;">Booster</label></div>
-                                    <div style="display: flex; align-items: center; gap: 0.5rem;"><input type="checkbox" name="treatment[]" value="tet"><label style="margin: 0; font-weight: normal;">TET</label></div>
-                                    <div style="display: flex; align-items: center; gap: 0.5rem;"><input type="checkbox" name="treatment[]" value="erig"><label style="margin: 0; font-weight: normal;">ERIG</label></div>
-                                    <div style="display: flex; align-items: center; gap: 0.5rem;"><input type="checkbox" name="treatment[]" value="hrig"><label style="margin: 0; font-weight: normal;">HRIG</label></div>
+
+                            {{-- Treatment Required --}}
+                            <div class="form-group" style="grid-column: 1 / -1;">
+                                <label style="font-weight: 600; margin-bottom: 0.5rem; display: block;">Treatment Required</label>
+                                <div style="display: flex; flex-wrap: wrap; gap: 0.5rem 1.25rem;">
+                                    @foreach([['prprep','PrPEP'],['pep','PEP'],['booster','Booster'],['tet','TET'],['erig','ERIG'],['hrig','HRIG']] as [$val,$lbl])
+                                    <label style="display: inline-flex; align-items: center; gap: 0.4rem; font-weight: normal; cursor: pointer; background: #f0f8f8; border: 1px solid #c8e6e6; border-radius: 6px; padding: 0.3rem 0.75rem; font-size: 0.88rem;">
+                                        <input type="checkbox" name="treatment[]" value="{{ $val }}" style="accent-color: #2b8f90;"> {{ $lbl }}
+                                    </label>
+                                    @endforeach
                                 </div>
                             </div>
-                            <div class="form-row" style="margin-top: 1rem;">
+
+                            {{-- Bite info row --}}
+                            <div class="form-row" style="margin-top: 0.25rem;">
                                 <div class="form-group">
-                                    <label>Bite</label>
+                                    <label>Bite Type</label>
                                     <select name="bite_type">
                                         <option value="">Select bite type</option>
                                         <option value="scratch">Scratch</option>
@@ -1426,6 +1492,101 @@
                                         <option value="severe">Severe</option>
                                     </select>
                                 </div>
+                            </div>
+
+                            {{-- Animal bite details sub-group --}}
+                            <div style="grid-column: 1 / -1; border-top: 1px solid #e0eeee; margin: 0.5rem 0 0.75rem; padding-top: 0.75rem;">
+                                <p style="font-size: 0.8rem; font-weight: 600; color: #2b8f90; text-transform: uppercase; letter-spacing: 0.04em; margin: 0 0 0.75rem;">Animal Details</p>
+                                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.75rem;">
+                                    <div class="form-group" style="margin: 0;">
+                                        <label>Animal Type</label>
+                                        <select name="animal_type">
+                                            <option value="">Select animal</option>
+                                            <option value="dog">Dog</option>
+                                            <option value="cat">Cat</option>
+                                            <option value="bat">Bat</option>
+                                            <option value="rat">Rat</option>
+                                            <option value="monkey">Monkey</option>
+                                            <option value="other">Other</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group" style="margin: 0;">
+                                        <label>Pet or Stray</label>
+                                        <select name="pet_or_stray">
+                                            <option value="">Select</option>
+                                            <option value="pet">Pet</option>
+                                            <option value="stray">Stray</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group" style="margin: 0;">
+                                        <label>Vaccinated Animal</label>
+                                        <select name="vaccinated_animal">
+                                            <option value="">Select</option>
+                                            <option value="yes">Yes</option>
+                                            <option value="no">No</option>
+                                            <option value="unknown">Unknown</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group" style="margin: 0;">
+                                        <label>Animal Status</label>
+                                        <input type="text" name="animal_status" placeholder="e.g. Alive, Dead, Stray">
+                                    </div>
+                                    <div class="form-group" style="margin: 0;">
+                                        <label>Date of Bite</label>
+                                        <input type="date" name="date_of_bite">
+                                    </div>
+                                    <div class="form-group" style="margin: 0;">
+                                        <label>Washing of Wound</label>
+                                        <select name="washing_of_wound">
+                                            <option value="">Select</option>
+                                            <option value="yes">Yes</option>
+                                            <option value="no">No</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group" style="margin: 0;">
+                                        <label>Tandok / Tambal</label>
+                                        <select name="tandok_tambal">
+                                            <option value="">Select</option>
+                                            <option value="yes">Yes</option>
+                                            <option value="no">No</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group" style="margin: 0;">
+                                        <label>Owner Name</label>
+                                        <input type="text" name="owner_name" placeholder="Animal owner name">
+                                    </div>
+                                    <div class="form-group" style="margin: 0;">
+                                        <label>Owner Address</label>
+                                        <input type="text" name="owner_address" placeholder="Owner address">
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+
+                    {{-- Medical History --}}
+                    <div class="detail-section">
+                        <div class="section-header">
+                            <span class="section-icon">🏥</span>
+                            <span class="section-title">Medical History</span>
+                        </div>
+                        <div class="detail-card">
+                            <div class="form-group" style="grid-column: 1 / -1;">
+                                <label style="font-weight: 600; margin-bottom: 0.5rem; display:block;">Existing Conditions</label>
+                                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 0.6rem;">
+                                    <label style="display:flex;align-items:center;gap:0.5rem;font-weight:normal;"><input type="checkbox" name="has_diabetes" value="1"> Diabetes (IDDM)</label>
+                                    <label style="display:flex;align-items:center;gap:0.5rem;font-weight:normal;"><input type="checkbox" name="has_cancer" value="1"> Cancer</label>
+                                    <label style="display:flex;align-items:center;gap:0.5rem;font-weight:normal;"><input type="checkbox" name="has_organ_transplant" value="1"> Organ Transplant</label>
+                                    <label style="display:flex;align-items:center;gap:0.5rem;font-weight:normal;"><input type="checkbox" name="has_ckd" value="1"> CKD</label>
+                                    <label style="display:flex;align-items:center;gap:0.5rem;font-weight:normal;"><input type="checkbox" name="has_hiv" value="1"> HIV</label>
+                                    <label style="display:flex;align-items:center;gap:0.5rem;font-weight:normal;"><input type="checkbox" name="taking_steroid" value="1"> Taking Steroid</label>
+                                    <label style="display:flex;align-items:center;gap:0.5rem;font-weight:normal;"><input type="checkbox" name="has_riv" value="1"> RIV</label>
+                                </div>
+                            </div>
+                            <div class="form-group" style="grid-column: 1 / -1;">
+                                <label>Allergy</label>
+                                <input type="text" name="allergy" placeholder="Any known allergies">
                             </div>
                         </div>
                     </div>
@@ -1639,29 +1800,59 @@
 
             form.action = button.dataset.updateUrl;
 
+            // Personal information
             form.querySelector('[name="full_name"]').value = patient.fullName || '';
             form.querySelector('[name="card_no"]').value = patient.cardNo || '';
             form.querySelector('[name="case_no"]').value = patient.caseNo || '';
             form.querySelector('[name="contact"]').value = patient.contact || '';
             form.querySelector('[name="age"]').value = patient.age || '';
+            form.querySelector('[name="birthday"]').value = patient.birthday || '';
             form.querySelector('[name="email"]').value = patient.email || '';
             form.querySelector('[name="gender"]').value = patient.gender || '';
             form.querySelector('[name="address"]').value = patient.address || '';
             form.querySelector('[name="weight"]').value = patient.weight || '';
+            form.querySelector('[name="blood_pressure"]').value = patient.bloodPressure || '';
+            form.querySelector('[name="temperature"]').value = patient.temperature || '';
             form.querySelector('[name="cat_category"]').value = patient.catCategory || '';
+
+            // Exposure history
             form.querySelector('[name="bite_type"]').value = patient.biteType || '';
             form.querySelector('[name="place_of_bite"]').value = patient.placeOfBite || '';
             form.querySelector('[name="source"]').value = patient.source || '';
             form.querySelector('[name="severity"]').value = patient.severity || '';
+
+            // Animal bite details
+            form.querySelector('[name="animal_type"]').value = patient.animalType || '';
+            form.querySelector('[name="pet_or_stray"]').value = patient.petOrStray || '';
+            form.querySelector('[name="vaccinated_animal"]').value = patient.vaccinatedAnimal || '';
+            form.querySelector('[name="animal_status"]').value = patient.animalStatus || '';
+            form.querySelector('[name="date_of_bite"]').value = patient.dateOfBite || '';
+            form.querySelector('[name="washing_of_wound"]').value = patient.washingOfWound || '';
+            form.querySelector('[name="tandok_tambal"]').value = patient.tandokTambal || '';
+            form.querySelector('[name="owner_name"]').value = patient.ownerName || '';
+            form.querySelector('[name="owner_address"]').value = patient.ownerAddress || '';
+
+            // Medical history — boolean checkboxes
+            ['has_diabetes','has_cancer','has_organ_transplant','has_ckd','has_hiv','taking_steroid','has_riv'].forEach(function(field) {
+                const key = field.replace(/_([a-z])/g, (_, c) => c.toUpperCase()); // camelCase
+                const cb = form.querySelector('[name="' + field + '"]');
+                if (cb) cb.checked = patient[key] === '1' || patient[key] === 'true' || patient[key] === true;
+            });
+            form.querySelector('[name="allergy"]').value = patient.allergy || '';
+
+            // Anti-rabies vaccine
             form.querySelector('[name="generic_name"]').value = patient.genericName || '';
             form.querySelector('[name="route"]').value = patient.route || '';
             form.querySelector('[name="brand_name"]').value = patient.brandName || '';
             form.querySelector('[name="dosage"]').value = patient.dosage || '';
             form.querySelector('[name="anti_rabies_dose"]').value = patient.antiRabiesDose || '';
+
+            // Tetanus & immunoglobulin
             form.querySelector('[name="tetanus_status"]').value = patient.tetanusStatus || '';
             form.querySelector('[name="tetanus_dose"]').value = patient.tetanusDose || '';
             form.querySelector('[name="rabies_immunoglobulin"]').value = patient.rabiesImmunoglobulin || '';
 
+            // Treatment checkboxes
             const treatmentValues = patient.treatmentRequired ? patient.treatmentRequired.split(',').map(item => item.trim()) : [];
             form.querySelectorAll('input[name="treatment[]"]').forEach((checkbox) => {
                 checkbox.checked = treatmentValues.includes(checkbox.value);
