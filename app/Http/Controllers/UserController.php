@@ -205,19 +205,31 @@ class UserController extends Controller
         $validated['treatment_required']   = [];
         $validated['bite_type']            = null;
 
-        // Auto-generate card/case numbers
-        if (empty($validated['card_no'])) {
-            $validated['card_no'] = 'CARD-' . now()->format('YmdHis');
-        }
-        if (empty($validated['case_no'])) {
-            do {
-                $candidate = 'CASE-' . now()->format('Ymd') . '-' . strtoupper(Str::random(5));
-            } while (Patient::where('case_no', $candidate)->exists());
-            $validated['case_no'] = $candidate;
-        }
-
         DB::transaction(function () use ($validated, $branchId) {
-            $patient = Patient::create(array_merge($validated, ['branch_id' => $branchId]));
+            // Reuse existing patient for this email+branch if present; otherwise create one.
+            // This prevents duplicate patient rows on every booking (mirrors registration fix).
+            $existingPatient = Patient::where('email', $validated['email'])
+                ->when($branchId, fn ($q) => $q->where('branch_id', $branchId))
+                ->latest()
+                ->first();
+
+            if ($existingPatient) {
+                // Update existing patient with latest booking info (exposure details, photo, etc.)
+                $existingPatient->update(array_merge($validated, ['branch_id' => $branchId]));
+                $patient = $existingPatient;
+            } else {
+                // Generate card/case numbers only for a new patient
+                if (empty($validated['card_no'])) {
+                    $validated['card_no'] = 'CARD-' . now()->format('YmdHis');
+                }
+                if (empty($validated['case_no'])) {
+                    do {
+                        $candidate = 'CASE-' . now()->format('Ymd') . '-' . strtoupper(Str::random(5));
+                    } while (Patient::where('case_no', $candidate)->exists());
+                    $validated['case_no'] = $candidate;
+                }
+                $patient = Patient::create(array_merge($validated, ['branch_id' => $branchId]));
+            }
 
             $user = auth()->check() ? auth()->user() : User::where('email', $validated['email'])->first();
 
@@ -235,6 +247,9 @@ class UserController extends Controller
                 'parent_guardian'  => $validated['parent_guardian'] ?? null,
                 'status'           => 'not_approved',
             ]);
+            // Note: ScheduledReminder is intentionally NOT created here.
+            // Reminders are only synced on approval via AdminController::updateAppointmentStatus (status=approved)
+            // and lazily on visiting admin/user reminders pages for approved appointments.
         });
 
         AdminNotification::newAppointmentRequest($validated['full_name']);
@@ -332,8 +347,6 @@ class UserController extends Controller
             $gender = $validated['gender'] ?? 'other';
             $address = $validated['address'] ?? 'N/A';
             $contact = $validated['contact'] ?? 'N/A';
-            $appointmentDate = $validated['appointment_date'] ?? now()->toDateString();
-            $parentGuardian = $validated['parent_guardian'] ?? null;
 
             // generate web-specific identifiers so admin can filter online registrations
             $cardNo = 'WEB-' . now()->format('YmdHis') . '-' . strtoupper(
@@ -346,6 +359,7 @@ class UserController extends Controller
             $patient = Patient::create([
                 'branch_id'  => $branchId,
                 'full_name' => $fullName,
+                'birthday' => $birthday,
                 'card_no' => $cardNo,
                 'case_no' => $caseNo,
                 'contact' => $contact,
@@ -359,37 +373,22 @@ class UserController extends Controller
                 'treatment_required' => null,
                 'bite_type' => null,
                 'place_of_bite' => 'multiple_sites',
-                'source' => 'other_animal',
                 'severity' => null,
                 'generic_name' => 'purified_vero_cell',
                 'route' => 'intramuscular',
                 'brand_name' => 'verorab',
                 'dosage' => '0_1ml',
                 'anti_rabies_dose' => 'day_0',
-                'anti_rabies_date' => $appointmentDate,
+                'anti_rabies_date' => now()->toDateString(),
                 'tetanus_status' => 'unknown',
                 'tetanus_dose' => 'dose1',
-                'tetanus_date' => $appointmentDate,
+                'tetanus_date' => now()->toDateString(),
                 'rabies_immunoglobulin' => 'none',
-            ]);
-
-            $appointment = Appointment::create([
-                'branch_id'       => $branchId,
-                'user_id'         => $user->id,
-                'full_name' => $fullName,
-                'birthday' => $birthday,
-                'age' => $age,
-                'gender' => $gender,
-                'address' => $address,
-                'contact' => $contact,
-                'appointment_date' => $appointmentDate,
-                'parent_guardian' => $parentGuardian,
-                'status' => 'not_approved',
             ]);
 
             return [
                 'patient' => $patient,
-                'appointment' => $appointment,
+                'user' => $user,
             ];
         });
 
@@ -400,7 +399,6 @@ class UserController extends Controller
             return response()->json([
                 'message' => 'Registration submitted. The details are sent to Admin Online Registrations for review.',
                 'patient' => $registration['patient'],
-                'appointment' => $registration['appointment'],
             ], 201);
         }
 
