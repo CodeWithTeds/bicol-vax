@@ -179,11 +179,21 @@
         <p>View your complete vaccination history and appointment details. All past and upcoming records associated with your profile are displayed below.</p>
     </div>
 
+    @if(!auth()->check())
+        <div style="background:#fff3cd; border:1px solid #ffe69c; color:#664d03; padding:1rem 1.25rem; border-radius:8px; margin-bottom:1.5rem;">
+            <strong>Please log in</strong> to view your records. <a href="/" style="color:#0a58ca; text-decoration:underline;">Go to login</a>
+        </div>
+    @elseif(($hasPending ?? false) && !($isApproved ?? false))
+        <div style="background:#fff3cd; border:1px solid #ffe69c; color:#664d03; padding:1rem 1.25rem; border-radius:8px; margin-bottom:1.5rem;">
+            <strong>⏳ Your account is pending approval.</strong> Your registration is under review. Vaccination records are hidden until approval, but you can track your appointment status below. You will be notified by email once approved.
+        </div>
+    @endif
+
     <div class="records-container">
         {{-- Vaccination Records Section --}}
         <div>
             <h2 class="section-title">Vaccination Records</h2>
-            <p class="section-description">Your anti-rabies treatment and vaccination history.</p>
+            <p class="section-description">Your anti-rabies treatment and vaccination history @if(($hasPending ?? false) && !($isApproved ?? false)) — <em>hidden until approval</em> @endif</p>
 
             @if($patients->count() > 0)
                 <table class="records-table">
@@ -226,8 +236,13 @@
                 </table>
             @else
                 <div class="empty-state">
-                    <p>📭 No vaccination records found.</p>
-                    <a href="{{ route('user.booking') }}">Book an Appointment</a>
+                    @if(($hasPending ?? false) && !($isApproved ?? false))
+                        <p>⏳ No approved vaccination records yet — your account is pending approval.</p>
+                        <p style="font-size:0.9rem; color:#856404; margin-top:0.5rem;">Once the clinic approves your registration, your vaccination history will appear here. Check your email for approval notification.</p>
+                    @else
+                        <p>📭 No vaccination records found.</p>
+                        <a href="{{ route('user.booking') }}">Book an Appointment</a>
+                    @endif
                 </div>
             @endif
         </div>

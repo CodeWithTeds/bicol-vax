@@ -23,13 +23,36 @@ class UserController extends Controller
         $user = auth()->user();
         $patients = collect();
         $appointments = collect();
+        $hasPending = false;
+        $isApproved = false;
 
         if ($user) {
-            $patients = Patient::where('email', $user->email)->latest()->get();
-            $appointments = Appointment::where('user_id', $user->id)->latest()->get();
+            $isStaff = (bool) ($user->is_admin || $user->is_super_admin);
+            $isApproved = $user->patients()->where('status', 'approved')->exists() || $isStaff;
+            $hasPending = $user->patients()->where(fn($q)=>$q->where('status','not_approved')->orWhereNull('status'))->exists()
+                || $user->appointments()->where(fn($q)=>$q->where('status','not_approved')->orWhereNull('status'))->exists();
+
+            if ($isApproved) {
+                // Approved users see approved history, but hide placeholder registration records that have no real vaccination data
+                // Registration creates a patient with defaults (treatment_required null, severity/bite null) — not a real vaccination
+                $patients = Patient::where('email', $user->email)->where('status', 'approved')->latest()->get()->filter(function($p){
+                    $hasTreatment = !empty($p->treatment_required) && $p->treatment_required !== '[]' && $p->treatment_required !== 'null';
+                    if (is_array($p->treatment_required)) $hasTreatment = count($p->treatment_required) > 0;
+                    return $hasTreatment || !empty($p->severity) || !empty($p->bite_type) || !empty($p->weight) || !empty($p->blood_pressure);
+                })->values();
+                $appointments = Appointment::where('user_id', $user->id)->where('status', 'approved')->latest()->get();
+            } elseif ($hasPending) {
+                // Pending users: hide sensitive vaccination details until approval, but don't show empty "recent vaccination" as if they have none
+                $patients = collect();
+                $appointments = collect();
+            } else {
+                // New users with no records at all
+                $patients = collect();
+                $appointments = collect();
+            }
         }
 
-        return view('user.dashboard', compact('patients', 'appointments'));
+        return view('user.dashboard', compact('patients', 'appointments', 'isApproved', 'hasPending'));
     }
 
     public function records()
@@ -37,13 +60,33 @@ class UserController extends Controller
         $user = auth()->user();
         $patients = collect();
         $appointments = collect();
+        $hasPending = false;
+        $isApproved = false;
 
         if ($user) {
-            $patients = Patient::where('email', $user->email)->latest()->get();
-            $appointments = Appointment::where('user_id', $user->id)->latest()->get();
+            $isStaff = (bool) ($user->is_admin || $user->is_super_admin);
+            $isApproved = $user->patients()->where('status', 'approved')->exists() || $isStaff;
+            $hasPending = $user->patients()->where(fn($q)=>$q->where('status','not_approved')->orWhereNull('status'))->exists()
+                || $user->appointments()->where(fn($q)=>$q->where('status','not_approved')->orWhereNull('status'))->exists();
+
+            if ($isApproved) {
+                $patients = Patient::where('email', $user->email)->where('status', 'approved')->latest()->get()->filter(function($p){
+                    $hasTreatment = !empty($p->treatment_required) && $p->treatment_required !== '[]' && $p->treatment_required !== 'null';
+                    if (is_array($p->treatment_required)) $hasTreatment = count($p->treatment_required) > 0;
+                    return $hasTreatment || !empty($p->severity) || !empty($p->bite_type) || !empty($p->weight) || !empty($p->blood_pressure);
+                })->values();
+                $appointments = Appointment::where('user_id', $user->id)->where('status', 'approved')->latest()->get();
+            } elseif ($hasPending) {
+                // For pending users, keep vaccination records hidden but show appointments (including pending) so they can track status
+                $patients = collect();
+                $appointments = $user->appointments()->latest()->get();
+            } else {
+                $patients = collect();
+                $appointments = collect();
+            }
         }
 
-        return view('user.records', compact('patients', 'appointments'));
+        return view('user.records', compact('patients', 'appointments', 'isApproved', 'hasPending'));
     }
 
     public function profile()
@@ -52,7 +95,13 @@ class UserController extends Controller
         $patient = null;
 
         if ($user) {
-            $patient = Patient::where('email', $user->email)->latest()->first();
+            $isApproved = $user->patients()->where('status', 'approved')->exists() || $user->is_admin || $user->is_super_admin;
+            if ($isApproved) {
+                $patient = Patient::where('email', $user->email)->where('status', 'approved')->latest()->first();
+            } else {
+                // For pending accounts, still fetch latest for status display but views should handle pending masking
+                $patient = Patient::where('email', $user->email)->latest()->first();
+            }
         }
 
         return view('user.profile', compact('user', 'patient'));
@@ -191,7 +240,9 @@ class UserController extends Controller
         // Admin-filled clinical defaults (placeholder values — nurse fills later)
         $validated['cat_category']         = 'category_i';
         $validated['place_of_bite']        = $validated['place_of_bite'] ?? 'multiple_sites';
-        $validated['source']               = $validated['animal_type']   ?? 'other_animal';
+        // Keep registration source separate from animal type; animal_type stores bite animal, source is registration source
+        $validated['animal_type']          = $validated['animal_type'] ?? 'other_animal';
+        $validated['source']               = 'web';
         $validated['generic_name']         = 'purified_vero_cell';
         $validated['route']                = 'intramuscular';
         $validated['brand_name']           = 'verorab';
@@ -214,8 +265,14 @@ class UserController extends Controller
                 ->first();
 
             if ($existingPatient) {
-                // Update existing patient with latest booking info (exposure details, photo, etc.)
-                $existingPatient->update(array_merge($validated, ['branch_id' => $branchId]));
+                // Update existing patient with latest booking info but preserve original registration source
+                $updateData = array_merge($validated, ['branch_id' => $branchId]);
+                // Preserve original source (web/admin) to avoid corrupting walk-in vs online classification
+                unset($updateData['source']);
+                if (empty($existingPatient->source)) {
+                    $updateData['source'] = 'web';
+                }
+                $existingPatient->update($updateData);
                 $patient = $existingPatient;
             } else {
                 // Generate card/case numbers only for a new patient

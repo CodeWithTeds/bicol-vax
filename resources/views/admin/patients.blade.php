@@ -562,7 +562,7 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @forelse ($patients->concat($onlineRegistrations) as $patient)
+                    @forelse ($allPatients as $patient)
                         <tr data-status="{{ $patient->status ?? 'not_approved' }}">
                             <td>{{ (($patient->source ?? null) === 'web' || str_starts_with($patient->card_no, 'WEB-')) ? 'Online Registration' : 'Walk-in' }}</td>
                             <td>{{ $patient->case_no }}</td>
@@ -957,39 +957,6 @@
                 return;
             }
 
-                // Search/filter patients in the currently visible table(s)
-                function filterPatients() {
-                    const q = (document.getElementById('searchInput').value || '').trim().toLowerCase();
-                    const tableIds = ['allTable', 'walkinTable', 'onlineTable'];
-
-                    // Determine visible tables; if none visible, default to walkinTable
-                    let visibleTables = tableIds
-                        .map(id => document.getElementById(id))
-                        .filter(t => t && t.style.display !== 'none');
-                    if (visibleTables.length === 0) {
-                        const walk = document.getElementById('walkinTable');
-                        if (walk) visibleTables = [walk];
-                    }
-
-                    let totalMatches = 0;
-                    visibleTables.forEach(table => {
-                        const tbody = table.tBodies && table.tBodies[0];
-                        if (!tbody) return;
-                        Array.from(tbody.rows).forEach(row => {
-                            // skip rows that are placeholders (they may contain 'No records')
-                            const text = row.textContent.toLowerCase();
-                            const match = q === '' || text.indexOf(q) !== -1;
-                            row.style.display = match ? '' : 'none';
-                            if (match) totalMatches++;
-                        });
-                    });
-
-                    const noRes = document.getElementById('searchNoResults');
-                    if (noRes) noRes.style.display = totalMatches === 0 ? 'block' : 'none';
-                }
-
-                document.getElementById('searchInput')?.addEventListener('input', filterPatients);
-
             // For appointments, switch to All and show specific section
             showPatientsTab('all');
 
@@ -1018,6 +985,41 @@
                 return;
             }
         }
+
+        // Global search/filter patients in the currently visible table(s) - handles both search and status filter
+        function filterPatients() {
+            const q = (document.getElementById('searchInput').value || '').trim().toLowerCase();
+            const statusFilter = document.getElementById('statusFilter').value;
+            const tableIds = ['allTable', 'walkinTable', 'onlineTable'];
+
+            let visibleTables = tableIds
+                .map(id => document.getElementById(id))
+                .filter(t => t && t.style.display !== 'none');
+            if (visibleTables.length === 0) {
+                const walk = document.getElementById('walkinTable');
+                if (walk) visibleTables = [walk];
+            }
+
+            let totalMatches = 0;
+            visibleTables.forEach(table => {
+                const tbody = table.tBodies && table.tBodies[0];
+                if (!tbody) return;
+                Array.from(tbody.rows).forEach(row => {
+                    const text = row.textContent.toLowerCase();
+                    const rowStatus = row.dataset.status || '';
+                    const matchesSearch = q === '' || text.indexOf(q) !== -1;
+                    const matchesStatus = statusFilter === 'all' || rowStatus === statusFilter;
+                    const match = matchesSearch && matchesStatus;
+                    row.style.display = match ? '' : 'none';
+                    if (match) totalMatches++;
+                });
+            });
+
+            const noRes = document.getElementById('searchNoResults');
+            if (noRes) noRes.style.display = totalMatches === 0 ? 'block' : 'none';
+        }
+
+        document.getElementById('searchInput')?.addEventListener('input', filterPatients);
     </script>
 
     <div class="modal {{ $errors->any() ? 'active' : '' }}" id="addPatientModal">
@@ -1778,7 +1780,7 @@
             document.getElementById('viewTreatment').textContent = patient.treatmentRequired ? patient.treatmentRequired.split(',').map(item => item.trim().toUpperCase()).join(', ') : '-';
             document.getElementById('viewBiteType').textContent = patient.biteType ? patient.biteType.replaceAll('_', ' ') : '-';
             document.getElementById('viewPlaceOfBite').textContent = patient.placeOfBite ? patient.placeOfBite.replaceAll('_', ' ') : '-';
-            document.getElementById('viewSource').textContent = patient.source ? patient.source.replaceAll('_', ' ') : '-';
+            document.getElementById('viewSource').textContent = (patient.animalType || patient.source) ? (patient.animalType || patient.source).replaceAll('_', ' ') : '-';
             document.getElementById('viewSeverity').textContent = patient.severity ? patient.severity.charAt(0).toUpperCase() + patient.severity.slice(1) : '-';
             document.getElementById('viewGenericName').textContent = patient.genericName ? patient.genericName.replaceAll('_', ' ') : '-';
             document.getElementById('viewRoute').textContent = patient.route ? patient.route.charAt(0).toUpperCase() + patient.route.slice(1) : '-';
@@ -1818,7 +1820,7 @@
             // Exposure history
             form.querySelector('[name="bite_type"]').value = patient.biteType || '';
             form.querySelector('[name="place_of_bite"]').value = patient.placeOfBite || '';
-            form.querySelector('[name="source"]').value = patient.source || '';
+            form.querySelector('[name="source"]').value = patient.animalType || patient.source || '';
             form.querySelector('[name="severity"]').value = patient.severity || '';
 
             // Animal bite details
@@ -1930,39 +1932,9 @@
             }
         });
 
-        document.getElementById('searchInput').addEventListener('keyup', function(e) {
-            const searchTerm = e.target.value.toLowerCase();
-            const tableRows = document.querySelectorAll('#patientsTableBody tr');
-
-            tableRows.forEach(row => {
-                const text = row.textContent.toLowerCase();
-                const statusFilter = document.getElementById('statusFilter').value;
-                const rowStatus = row.dataset.status || '';
-                const matchesSearch = text.includes(searchTerm);
-                const matchesStatus = statusFilter === 'all' || rowStatus === statusFilter;
-                row.style.display = (matchesSearch && matchesStatus) ? '' : 'none';
-            });
-        });
-
         function filterByStatus() {
-            const statusFilter = document.getElementById('statusFilter').value;
-            const searchTerm = (document.getElementById('searchInput').value || '').toLowerCase();
-
-            // Filter all visible tables
-            const tableIds = ['walkinTable', 'allTable', 'onlineTable'];
-            tableIds.forEach(id => {
-                const table = document.getElementById(id);
-                if (!table || table.style.display === 'none') return;
-                const tbody = table.tBodies && table.tBodies[0];
-                if (!tbody) return;
-                Array.from(tbody.rows).forEach(row => {
-                    const text = row.textContent.toLowerCase();
-                    const rowStatus = row.dataset.status || '';
-                    const matchesSearch = searchTerm === '' || text.includes(searchTerm);
-                    const matchesStatus = statusFilter === 'all' || rowStatus === statusFilter;
-                    row.style.display = (matchesSearch && matchesStatus) ? '' : 'none';
-                });
-            });
+            // Delegate to unified filter that handles both search and status
+            filterPatients();
         }
 
         @if (session('success'))

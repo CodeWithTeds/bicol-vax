@@ -108,9 +108,19 @@
         </a>
     </div>
 
+    @if(!auth()->check())
+        <div style="background:#fff3cd; border:1px solid #ffe69c; color:#664d03; padding:1rem 1.25rem; border-radius:8px; margin-bottom:1.5rem;">
+            <strong>Please log in</strong> to view your vaccination records. <a href="/" style="color:#0a58ca; text-decoration:underline;">Go to login</a>
+        </div>
+    @elseif(($hasPending ?? false) && !($isApproved ?? false))
+        <div style="background:#fff3cd; border:1px solid #ffe69c; color:#664d03; padding:1rem 1.25rem; border-radius:8px; margin-bottom:1.5rem;">
+            <strong>⏳ Your account is pending approval.</strong> Your registration is under review by the clinic. Vaccination records will appear here after your account is approved. You will be notified by email once approved.
+        </div>
+    @endif
+
     <div class="records-section">
         <h2>Recent Vaccination Records</h2>
-        <p>Your latest vaccination history</p>
+        <p>Your latest vaccination history @if(($hasPending ?? false) && !($isApproved ?? false)) (pending approval) @endif</p>
 
         @forelse($patients as $patient)
             <div class="record-item">
@@ -126,8 +136,13 @@
         @empty
             <div class="record-item">
                 <div class="record-content">
-                    <h3>No records found</h3>
-                    <p>You don't have any vaccination records yet.</p>
+                    @if(($hasPending ?? false) && !($isApproved ?? false))
+                        <h3>Pending approval — no vaccination records yet</h3>
+                        <p>Your account is awaiting clinic approval. Once approved, your vaccination history will show here. Check your email for updates or contact the clinic if approval is delayed.</p>
+                    @else
+                        <h3>No records found</h3>
+                        <p>You don't have any vaccination records yet. @if(auth()->check()) <a href="{{ route('user.booking') }}" style="color:#fff; text-decoration:underline;">Book an appointment</a> to get started. @endif</p>
+                    @endif
                 </div>
             </div>
         @endforelse

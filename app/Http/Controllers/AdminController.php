@@ -204,11 +204,18 @@ class AdminController extends Controller
 
     public function patients()
     {
-        $patients = $this->patientQuery()->where('source', 'admin')->latest()->get();
-
         $onlineRegistrations = $this->patientQuery()->where(function ($q) {
             $q->where('source', 'web')->orWhere('card_no', 'like', 'WEB-%');
         })->latest()->get();
+
+        // Walk-ins: all branch patients that are NOT online registrations
+        // This handles both correct source='admin' and legacy data where booking overwrote source with animal type
+        $onlineIds = $onlineRegistrations->pluck('id')->all();
+        $patientsQuery = $this->patientQuery();
+        if (!empty($onlineIds)) {
+            $patientsQuery->whereNotIn('id', $onlineIds);
+        }
+        $patients = $patientsQuery->latest()->get();
 
         $approvedOnlineRegistrations = $onlineRegistrations->where('status', 'approved')->values();
 
@@ -275,6 +282,8 @@ class AdminController extends Controller
 
         $validated['anti_rabies_date'] = $validated['anti_rabies_date'] ?? now()->toDateString();
         $validated['tetanus_date']     = $validated['tetanus_date']     ?? now()->toDateString();
+        // The form field 'source' actually contains the animal source (dog/cat...); store it in animal_type and force registration source to admin
+        $validated['animal_type']      = $validated['source'];
         $validated['source']           = 'admin';
         $validated['branch_id']        = $this->branchId(); // ← attach to branch
 
@@ -344,6 +353,15 @@ class AdminController extends Controller
         // Normalise boolean checkboxes — unchecked boxes are not submitted at all
         foreach (['has_diabetes','has_cancer','has_organ_transplant','has_ckd','has_hiv','taking_steroid','has_riv'] as $flag) {
             $validated[$flag] = $request->boolean($flag);
+        }
+
+        // The form field 'source' actually contains the animal source (dog/cat...); preserve registration source and store animal type correctly
+        $submittedAnimalSource = $validated['source'] ?? null;
+        // Do not overwrite the registration source (admin/web); keep original
+        unset($validated['source']);
+        // Prefer explicitly submitted animal_type, fallback to the 'source' dropdown value
+        if (empty($validated['animal_type']) && !empty($submittedAnimalSource)) {
+            $validated['animal_type'] = $submittedAnimalSource;
         }
 
         $patient->update($validated);
